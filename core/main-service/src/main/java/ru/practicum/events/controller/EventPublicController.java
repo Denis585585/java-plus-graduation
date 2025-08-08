@@ -12,7 +12,8 @@ import ru.practicum.events.dto.EventShortDto;
 import ru.practicum.events.dto.EventPublicParam;
 import ru.practicum.events.service.EventService;
 import ru.practicum.events.util.SortState;
-import stat.StatsClient;
+import ru.practicum.user.dto.UserShortDto;
+import stat.StatClient;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -24,7 +25,7 @@ import java.util.List;
 public class EventPublicController {
 
     private final EventService eventService;
-    private final StatsClient statsClient;
+    private final StatClient statClient;
 
     @GetMapping
     public ResponseEntity<List<EventShortDto>> publicGetEvents(@RequestParam(required = false) String text,
@@ -51,13 +52,19 @@ public class EventPublicController {
         return ResponseEntity.ok().body(eventService.publicGetEvent(eventId));
     }
 
+    @GetMapping("/{eventId}/likes")
+    public ResponseEntity<List<UserShortDto>> publicGetLikedUsers(@PathVariable("eventId") Integer eventId, HttpServletRequest request) {
+        saveHit(request);
+        return ResponseEntity.ok(eventService.getLikedUsers(eventId));
+    }
+
     private void saveHit(HttpServletRequest request) {
         EndpointHitDto hitDto = new EndpointHitDto();
         hitDto.setApp("main-service");
         hitDto.setUri(request.getRequestURI());
         hitDto.setIp(request.getRemoteAddr());
         hitDto.setTimestamp(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
-        ResponseEntity<Object> response = statsClient.saveHit(hitDto);
+        ResponseEntity<Object> response = statClient.saveHit(hitDto);
         if (response.getStatusCode() == HttpStatus.OK || response.getStatusCode() == HttpStatus.CREATED) {
             System.out.println("Hit saved successfully for URI: " + request.getRequestURI());
         } else {

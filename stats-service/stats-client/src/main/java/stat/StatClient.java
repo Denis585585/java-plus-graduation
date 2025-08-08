@@ -17,24 +17,23 @@ import org.springframework.web.util.UriComponentsBuilder;
 import ru.practicum.dto.EndpointHitDto;
 
 import java.net.URI;
+
 import java.util.List;
 
 @Service
 @Slf4j
-public class StatsClient extends BaseClient {
+public class StatClient extends BaseClient {
     private final DiscoveryClient discoveryClient;
     private final RetryTemplate retryTemplate;
     private final String statsServiceId;
 
-    public StatsClient(DiscoveryClient discoveryClient,
-                       @Value("${discovery.services.stats-server-id}") String statsServiceId,
-                       RestTemplateBuilder builder) {
-        super(
-                builder
-                        .uriTemplateHandler(new DefaultUriBuilderFactory(""))
-                        .requestFactory(() -> new HttpComponentsClientHttpRequestFactory())
-                        .build()
-        );
+    public StatClient(DiscoveryClient discoveryClient,
+                      @Value("${discovery.services.stats-server-id}") String statsServiceId,
+                      RestTemplateBuilder builder) {
+        super(builder
+                .uriTemplateHandler(new DefaultUriBuilderFactory(""))
+                .requestFactory(() -> new HttpComponentsClientHttpRequestFactory())
+                .build());
 
         this.discoveryClient = discoveryClient;
         this.statsServiceId = statsServiceId;
@@ -77,10 +76,11 @@ public class StatsClient extends BaseClient {
             uriBuilder.queryParam("uris", String.join(",", uris));
             log.info("Uris added to the path: {}", uris);
         }
+
         String pathWithParams = uriBuilder.toUriString();
         URI fullUri = makeUri(pathWithParams);
 
-        log.info("Final request URI: {}", uriBuilder.toUriString());
+        log.info("Final full URI: {}", fullUri);
 
         try {
             ResponseEntity<Object> response = rest.getForEntity(fullUri, Object.class);

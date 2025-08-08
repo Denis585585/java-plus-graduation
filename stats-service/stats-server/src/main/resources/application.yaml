@@ -1,6 +1,6 @@
 spring:
   application:
-    name: main-service
+    name: stats-server
   config:
     import: "configserver:"
   cloud:
@@ -20,8 +20,8 @@ eureka:
   instance:
     preferIpAddress: true
     hostname: localhost
-    instance-id: "${spring.application.name}:${random.value}"
+    instance-id: "${spring.application.name}:${server.port}"
     leaseRenewalIntervalInSeconds: 10
 
-stats-server:
-  url: ${STATS_SERVER_URL:http://localhost:9090}
+server:
+  port: 9090
