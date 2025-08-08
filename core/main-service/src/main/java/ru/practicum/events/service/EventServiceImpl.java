@@ -2,22 +2,23 @@ package ru.practicum.events.service;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import ru.practicum.categories.repository.CategoryRepository;
 import ru.practicum.categories.model.Category;
+import ru.practicum.categories.repository.CategoryRepository;
+import ru.practicum.dto.EndpointHitDto;
 import ru.practicum.dto.ViewStatsDto;
 import ru.practicum.events.dto.*;
 import ru.practicum.events.mapper.EventMapper;
 import ru.practicum.events.mapper.LocationMapper;
 import ru.practicum.events.model.Event;
-import ru.practicum.events.dto.EventAdminParams;
-import ru.practicum.events.dto.EventPublicParam;
 import ru.practicum.events.model.Like;
 import ru.practicum.events.repository.EventRepository;
 import ru.practicum.events.repository.LikeRepository;
@@ -35,6 +36,7 @@ import stat.StatClient;
 
 import java.security.InvalidParameterException;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
@@ -295,6 +297,21 @@ public class EventServiceImpl implements EventService {
         return eventRepository.findAllById(eventIds).stream()
                 .map(eventMapper::toEventShortDto)
                 .toList();
+    }
+
+    @Override
+    public void saveHit(HttpServletRequest request) {
+        EndpointHitDto hitDto = new EndpointHitDto();
+        hitDto.setApp("main-service");
+        hitDto.setUri(request.getRequestURI());
+        hitDto.setIp(request.getRemoteAddr());
+        hitDto.setTimestamp(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+        ResponseEntity<Object> response = statClient.saveHit(hitDto);
+        if (response.getStatusCode() == HttpStatus.OK || response.getStatusCode() == HttpStatus.CREATED) {
+            System.out.println("Hit saved successfully for URI: " + request.getRequestURI());
+        } else {
+            System.err.println("Failed to save hit: " + response.getStatusCode());
+        }
     }
 
     private List<Integer> getEventIdsLikedByUser(Integer userId) {

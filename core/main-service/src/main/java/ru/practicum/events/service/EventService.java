@@ -1,5 +1,6 @@
 package ru.practicum.events.service;
 
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.events.dto.*;
 import ru.practicum.events.dto.EventAdminParams;
@@ -41,4 +42,6 @@ public interface EventService {
     List<EventFullDto> adminGetEventsLikedByUser(Integer userId);
 
     List<EventShortDto> getAllLikedEvents(Integer userId);
+
+    void saveHit(HttpServletRequest request);
 }

@@ -1,7 +1,6 @@
 package ru.practicum.request.controller;
 
 
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -35,8 +34,8 @@ public class RequestController {
     }
 
     @PatchMapping("/{requestId}/cancel")
-    RequestDto cancelRequest(@PathVariable Integer userId,
-                             @PathVariable Integer requestId) {
+    public RequestDto cancelRequest(@PathVariable Integer userId,
+                                    @PathVariable Integer requestId) {
         log.info("Отменить запрос по userId --> {}, requestId --> {}", userId, requestId);
         return requestService.cancelRequest(userId, requestId);
     }
