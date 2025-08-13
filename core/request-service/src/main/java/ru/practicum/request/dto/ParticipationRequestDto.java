@@ -19,6 +19,6 @@ public class ParticipationRequestDto {
     @NotNull
     private Integer requester;
     private RequestStatus status;
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd' 'HH:mm:ss")
     private LocalDateTime created;
 }

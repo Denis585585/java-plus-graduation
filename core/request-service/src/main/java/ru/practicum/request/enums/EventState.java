@@ -1,8 +1,7 @@
 package ru.practicum.request.enums;
 
-public enum RequestStatus {
+public enum EventState {
     PENDING,
-    CONFIRMED,
-    REJECTED,
+    PUBLISHED,
     CANCELED
 }

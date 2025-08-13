@@ -1,26 +1,20 @@
 package ru.practicum.request.service;
 
-import org.springframework.transaction.annotation.Transactional;
+
 import ru.practicum.request.dto.EventRequestStatusUpdateRequest;
 import ru.practicum.request.dto.EventRequestStatusUpdateResult;
 import ru.practicum.request.dto.RequestDto;
 
 import java.util.List;
 
-@Transactional(readOnly = true)
 public interface RequestService {
-    List<RequestDto> getRequestsByOwnerOfEvent(Integer userId, Integer eventId);
+    List<RequestDto> getRequests(Integer userId);
 
-    @Transactional
-    EventRequestStatusUpdateResult updateRequests(Integer userId, Integer eventId, EventRequestStatusUpdateRequest requestStatusUpdateRequest);
-
-    @Transactional
     RequestDto createRequest(Integer userId, Integer eventId);
 
-    List<RequestDto> getCurrentUserRequests(Integer userId);
+    RequestDto cancelRequest(Integer userId, Integer requestId);
 
-    @Transactional
-    RequestDto cancelRequests(Integer userId, Integer requestId);
+    List<RequestDto> getRequestByUserOfEvent(Integer userId, Integer eventId);
 
-    Long getConfirmedRequestsCount(Integer eventId);
+    EventRequestStatusUpdateResult updateRequests(Integer userId, Integer eventId, EventRequestStatusUpdateRequest requestStatusUpdateRequest);
 }

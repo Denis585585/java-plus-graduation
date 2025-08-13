@@ -2,10 +2,11 @@ package ru.practicum.request.client.decoder;
 
 import feign.Response;
 import feign.codec.ErrorDecoder;
+import jakarta.ws.rs.InternalServerErrorException;
 import org.springframework.stereotype.Component;
-import ru.practicum.request.exception.DataValidationException;
-import ru.practicum.request.exception.InternalServerErrorException;
-import ru.practicum.request.exception.NotFoundException;
+import ru.practicum.request.exceptions.DataValidationException;
+import ru.practicum.request.exceptions.NotFoundException;
+
 
 @Component
 public class FeignErrorDecoder implements ErrorDecoder {
