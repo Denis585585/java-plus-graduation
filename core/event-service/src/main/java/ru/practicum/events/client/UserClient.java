@@ -8,7 +8,7 @@ import ru.practicum.dto.UserDto;
 
 import java.util.List;
 
-@FeignClient(name = "userId-service", configuration = FeignConfig.class)
+@FeignClient(name = "user-service", configuration = FeignConfig.class)
 public interface UserClient {
     @GetMapping("/admin/users/{userId}")
     UserDto findById(@PathVariable Integer userId);

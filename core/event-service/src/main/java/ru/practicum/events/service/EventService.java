@@ -3,7 +3,6 @@ package ru.practicum.events.service;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.dto.UserDto;
-import ru.practicum.dto.UserShortDto;
 import ru.practicum.events.dto.*;
 import ru.practicum.events.dto.EventAdminParams;
 import ru.practicum.events.dto.EventPublicParam;
