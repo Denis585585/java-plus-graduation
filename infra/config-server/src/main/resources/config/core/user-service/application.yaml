@@ -14,7 +14,7 @@ spring:
       enabled: ALWAYS
   datasource:
     driver-class-name: org.postgresql.Driver
-    url: jdbc:postgresql://localhost:5432/ewm-user
+    url: jdbc:postgresql://localhost:5432/ewm-user-db
     username: root
     password: root
 
