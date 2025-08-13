@@ -7,7 +7,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import ru.practicum.request.dto.EventFullDto;
 import ru.practicum.request.dto.EventShortDto;
 
-
 import java.util.List;
 
 @FeignClient(name = "event-service", configuration = FeignConfig.class)

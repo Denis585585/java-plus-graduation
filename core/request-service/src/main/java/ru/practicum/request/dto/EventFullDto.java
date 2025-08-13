@@ -5,21 +5,21 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import ru.practicum.request.enums.EventState;
 
 import java.time.LocalDateTime;
 
-@Data
 @AllArgsConstructor
 @NoArgsConstructor
+@Data
 @Builder
 public class EventFullDto {
     private Integer id;
     private String annotation;
     private Long confirmedRequests;
+
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd' 'HH:mm:ss")
     private LocalDateTime eventDate;
-    private Integer initiatorId;
+    private Integer initiator;
     private Boolean paid;
     private String title;
     private Long views;
@@ -28,5 +28,4 @@ public class EventFullDto {
     private Long participantLimit;
     private LocalDateTime publishedOn;
     private Boolean requestModeration;
-    private EventState state;
 }

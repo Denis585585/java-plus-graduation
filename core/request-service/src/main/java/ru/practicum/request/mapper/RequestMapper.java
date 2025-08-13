@@ -1,22 +1,29 @@
 package ru.practicum.request.mapper;
 
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
-import org.mapstruct.factory.Mappers;
+import org.springframework.stereotype.Component;
 import ru.practicum.request.dto.ParticipationRequestDto;
 import ru.practicum.request.dto.RequestDto;
 import ru.practicum.request.model.Request;
 
-import java.util.List;
+@Component
+public class RequestMapper {
+    public RequestDto toRequestDto(Request request) {
+        return new RequestDto(
+                request.getId(),
+                request.getCreated(),
+                request.getEvent(),
+                request.getRequester(),
+                request.getStatus().toString()
+        );
+    }
 
-@Mapper
-public interface RequestMapper {
-    RequestMapper INSTANCE = Mappers.getMapper(RequestMapper.class);
-
-    @Mapping(source = "created", target = "created", dateFormat = "yyyy-MM-dd HH:mm:ss")
-    RequestDto mapToRequestDto(Request request);
-
-    List<RequestDto> mapListRequests(List<Request> requests);
-
-    ParticipationRequestDto toParticipationRequestDto(Request request);
+    public ParticipationRequestDto toParticipationRequestDto(Request request) {
+        return new ParticipationRequestDto(
+                request.getId(),
+                request.getEvent(),
+                request.getRequester(),
+                request.getStatus(),
+                request.getCreated()
+        );
+    }
 }
