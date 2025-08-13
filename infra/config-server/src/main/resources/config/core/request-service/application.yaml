@@ -2,21 +2,22 @@ spring:
   jpa:
     show-sql: true
     hibernate:
-      ddl-auto: none
+      ddl-auto: validate
     properties:
       hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
         format_sql: true
   sql:
     init:
-      mode: always
+      mode: never
   output:
     ansi:
       enabled: ALWAYS
   datasource:
     driver-class-name: org.postgresql.Driver
     url: jdbc:postgresql://localhost:5432/ewm-request-db
-    username: root
-    password: root
+    username: user
+    password: password
 
 logging:
   level:
