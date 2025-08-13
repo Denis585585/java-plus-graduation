@@ -106,8 +106,8 @@ services:
     environment:
       - CLIENT_URL=http://stats-server:9090
       - SPRING_DATASOURCE_URL=jdbc:postgresql://ewm-event-db:5432/ewm-event-db
-      - SPRING_DATASOURCE_USERNAME=event
-      - SPRING_DATASOURCE_PASSWORD=event
+      - SPRING_DATASOURCE_USERNAME=root
+      - SPRING_DATASOURCE_PASSWORD=root
       - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://discovery-server:8761/eureka
       - SERVER_PORT=8081
     healthcheck:
@@ -125,8 +125,8 @@ services:
       - ewm-network
     environment:
       - POSTGRES_DB=ewm-event-db
-      - POSTGRES_USER=event
-      - POSTGRES_PASSWORD=event
+      - POSTGRES_USER=root
+      - POSTGRES_PASSWORD=root
     healthcheck:
       test: pg_isready -q -d $$POSTGRES_DB -U $$POSTGRES_USER
       timeout: 5s
@@ -145,8 +145,8 @@ services:
       - ewm-network
     environment:
       - SPRING_DATASOURCE_URL=jdbc:postgresql://ewm-user-db:5432/ewm-user-db
-      - SPRING_DATASOURCE_USERNAME=user
-      - SPRING_DATASOURCE_PASSWORD=user
+      - SPRING_DATASOURCE_USERNAME=root
+      - SPRING_DATASOURCE_PASSWORD=root
       - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://discovery-server:8761/eureka
       - SERVER_PORT=8082
     healthcheck:
@@ -164,8 +164,8 @@ services:
       - ewm-network
     environment:
       - POSTGRES_DB=ewm-user-db
-      - POSTGRES_USER=user
-      - POSTGRES_PASSWORD=user
+      - POSTGRES_USER=root
+      - POSTGRES_PASSWORD=root
     healthcheck:
       test: pg_isready -q -d $$POSTGRES_DB -U $$POSTGRES_USER
       timeout: 5s
@@ -184,8 +184,8 @@ services:
       - ewm-network
     environment:
       - SPRING_DATASOURCE_URL=jdbc:postgresql://ewm-request-db:5432/ewm-request-db
-      - SPRING_DATASOURCE_USERNAME=request
-      - SPRING_DATASOURCE_PASSWORD=request
+      - SPRING_DATASOURCE_USERNAME=root
+      - SPRING_DATASOURCE_PASSWORD=root
       - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://discovery-server:8761/eureka
       - SERVER_PORT=8083
     healthcheck:
@@ -203,8 +203,8 @@ services:
       - ewm-network
     environment:
       - POSTGRES_DB=ewm-request-db
-      - POSTGRES_USER=request
-      - POSTGRES_PASSWORD=request
+      - POSTGRES_USER=root
+      - POSTGRES_PASSWORD=root
     healthcheck:
       test: pg_isready -q -d $$POSTGRES_DB -U $$POSTGRES_USER
       timeout: 5s
