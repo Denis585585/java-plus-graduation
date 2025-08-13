@@ -1,0 +1,8 @@
+-- Таблица запросов
+CREATE TABLE IF NOT EXISTS requests (
+    id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    created TIMESTAMP WITHOUT TIME ZONE,
+    event_id INTEGER NOT NULL,
+    requester_id INTEGER NOT NULL,
+    status varchar(25) NOT NULL,
+);
