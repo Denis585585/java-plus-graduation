@@ -8,7 +8,7 @@ import java.util.List;
 @Data
 @AllArgsConstructor
 public class UserParams {
-    private List<Integer> ids;
+    private List<Long> ids;
     private Integer from;
     private Integer size;
 }
