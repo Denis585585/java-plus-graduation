@@ -11,10 +11,9 @@ import ru.practicum.dto.events.EventShortDto;
 import ru.practicum.dto.user.UserShortDto;
 import ru.practicum.events.service.EventService;
 import ru.practicum.dto.events.SortState;
-import stat.StatClient;
+
 
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 @RestController
