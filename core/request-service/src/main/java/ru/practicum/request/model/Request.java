@@ -1,33 +1,32 @@
 package ru.practicum.request.model;
 
 import jakarta.persistence.*;
-import lombok.*;
-import org.hibernate.proxy.HibernateProxy;
-import ru.practicum.request.enums.RequestStatus;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import ru.practicum.dto.request.RequestStatus;
 
 import java.time.LocalDateTime;
-import java.util.Objects;
 
 @Entity
 @Table(name = "requests")
-@Getter
-@Setter
+@Data
 @Builder(toBuilder = true)
 @NoArgsConstructor
 @AllArgsConstructor
 public class Request {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
+    private Long id;
 
     private LocalDateTime created;
 
     @Column(name = "event_id")
-    private Integer eventId;
+    private Long eventId;
 
     @Column(name = "requester_id")
-    private Integer requesterId;
+    private Long requesterId;
 
     @Enumerated(EnumType.STRING)
     private RequestStatus status;
