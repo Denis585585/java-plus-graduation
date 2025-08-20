@@ -14,7 +14,7 @@ spring:
       enabled: ALWAYS
   datasource:
     driver-class-name: org.postgresql.Driver
-    url: jdbc:postgresql://localhost:5432/ewm-user-db
+    url: jdbc:postgresql://localhost:5432/ewm-user
     username: root
     password: root
 
@@ -26,10 +26,6 @@ logging:
     "org.springframework.orm.jpa.JpaTransactionManager": DEBUG
     "org.hibernate.SQL": DEBUG
     "org.hibernate.orm.jdbc.bind": trace
-
-discovery:
-  services:
-    stats-server-id: STATS-SERVER
 
 server:
   port: 0

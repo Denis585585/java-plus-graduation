@@ -3,6 +3,11 @@ spring:
     gateway:
       discovery.locator.enabled: true
       routes:
+        - id: event_service_route
+          uri: lb://event-service
+          predicates:
+            - Path=/categories/**,/admin/categories/**,/compilations/**,/admin/compilations/**,/admin/events/**,/users/{userId}/events/**,/events/**,/admin/locations/**,/locations/**
+
         - id: user_service_route
           uri: lb://user-service
           predicates:
@@ -11,12 +16,7 @@ spring:
         - id: request_service_route
           uri: lb://request-service
           predicates:
-            - Path=/users/{userId}/requests/**, /users/{userId}/events/{eventId}/requests/**
-
-        - id: event_service_route
-          uri: lb://event-service
-          predicates:
-            - Path=/**
+            - Path=/users/{userId}/requests/**
 
 server:
   port: 8080
@@ -27,12 +27,3 @@ logging:
       springframework:
         cloud:
           gateway: DEBUG
-
-management:
-  endpoints:
-    web:
-      exposure:
-        include: "*"
-  endpoint:
-    health:
-      show-details: always

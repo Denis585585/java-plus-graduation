@@ -15,7 +15,7 @@ spring:
       enabled: ALWAYS
   datasource:
     driver-class-name: org.h2.Driver
-    url: jdbc:h2:mem:ewm-event
+    url: jdbc:h2:mem:ewm-location
     username: root
     password: root
   h2:
@@ -30,10 +30,6 @@ logging:
     "org.springframework.orm.jpa.JpaTransactionManager": DEBUG
     "org.hibernate.SQL": DEBUG
     "org.hibernate.orm.jdbc.bind": trace
-
-discovery:
-  services:
-    stats-server-id: stat-server
 
 server:
   port: 0
