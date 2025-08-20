@@ -15,7 +15,7 @@ import ru.practicum.exceptions.InvalidDataException;
 import ru.practicum.exceptions.NotFoundException;
 import ru.practicum.request.mapper.RequestMapper;
 import ru.practicum.request.model.Request;
-import ru.practicum.repository.RequestRepository;
+import ru.practicum.request.repository.RequestRepository;
 
 import java.security.InvalidParameterException;
 import java.time.LocalDateTime;
