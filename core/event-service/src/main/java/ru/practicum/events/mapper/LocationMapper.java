@@ -1,7 +1,7 @@
 package ru.practicum.events.mapper;
 
 import org.mapstruct.Mapper;
-import ru.practicum.events.dto.LocationDto;
+import ru.practicum.dto.events.LocationDto;
 import ru.practicum.events.model.Location;
 
 @Mapper(componentModel = "spring")

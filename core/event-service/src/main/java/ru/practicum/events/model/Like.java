@@ -14,20 +14,20 @@ import lombok.experimental.FieldDefaults;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class Like {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
-
-    @Column(name = "user_id")
-    private Integer userId;
+    @EmbeddedId
+    LikeId id;
 
     @ManyToOne
-    @JoinColumn(name = "event_id")
-    private Event event;
+    @MapsId("eventId")
+    @JoinColumn(name = "event_id", nullable = false)
+    Event event;
 
-    public Like(Integer userId, Event event) {
+    public Long getUserId() {
+        return id != null ? id.getUserId() : null;
+    }
+
+    public Like(Long userId, Event event) {
+        this.id = new LikeId(userId, event.getId());
         this.event = event;
-        this.userId = userId;
     }
 }

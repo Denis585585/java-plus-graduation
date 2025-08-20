@@ -2,46 +2,60 @@ package ru.practicum.events.service;
 
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.transaction.annotation.Transactional;
-import ru.practicum.dto.UserDto;
-import ru.practicum.events.dto.*;
-import ru.practicum.events.dto.EventAdminParams;
-import ru.practicum.events.dto.EventPublicParam;
+import ru.practicum.dto.events.*;
+import ru.practicum.dto.request.ParticipationRequestDto;
+import ru.practicum.dto.user.UserShortDto;
+import ru.practicum.events.model.Event;
 
 import java.util.List;
 
 @Transactional(readOnly = true)
 public interface EventService {
-
-    List<EventShortDto> getEventsByUser(Integer userId, Integer from, Integer size);
-
-    @Transactional
-    EventFullDto createEvent(Integer userId, NewEventDto newEventDto);
-
-    EventFullDto getFullEventInformation(Integer userId, Integer eventId);
+    List<EventShortDto> getEventsByUser(Long userId, Integer from, Integer size);
 
     @Transactional
-    EventFullDto updateEventByUser(Integer userId, Integer eventId, UpdateEventUserDto updateEventUserDto);
+    EventFullDto createEvent(Long userId, NewEventDto newEventDto);
+
+    EventFullDto getFullEventInformation(Long userId, Long eventId);
 
     @Transactional
-    EventFullDto updateAdminEvent(Integer eventId, UpdateEventAdminRequest updateEventAdminRequest);
+    EventFullDto updateEventByUser(Long userId, Long eventId, UpdateEventUserDto updateEventUserDto);
+
+    @Transactional
+    EventFullDto updateAdminEvent(Long eventId, UpdateEventAdminRequestDto updateEventAdminRequest);
 
     List<EventFullDto> adminGetEvents(EventAdminParams eventParams);
 
     List<EventShortDto> publicGetEvents(EventPublicParam eventPublicParam);
 
-    EventFullDto publicGetEvent(Integer eventId);
+    EventFullDto publicGetEvent(Long eventId);
 
     @Transactional
-    Long addLike(Integer userId, Integer eventId);
+    Long addLike(Long userId, Long eventId);
 
     @Transactional
-    Long removeLike(Integer userId, Integer eventId);
+    Long removeLike(Long userId, Long eventId);
 
-    List<UserDto> getLikedUsers(Integer eventId);
+    List<UserShortDto> getLikedUsers(Long eventId);
 
-    List<EventFullDto> adminGetEventsLikedByUser(Integer userId);
+    List<EventFullDto> adminGetEventsLikedByUser(Long userId);
 
-    List<EventShortDto> getAllLikedEvents(Integer userId);
+    List<EventShortDto> getAllLikedEvents(Long userId);
+
+    List<EventFullDto> getByLocation(Long locationId);
+
+    Event getEvent(Long eventId);
+
+    EventFullDto getEventById(Long eventId);
+
+    List<ParticipationRequestDto> getEventAllParticipationRequests(Long eventId, Long userId);
+
+    Event checkAndGetEventByIdAndInitiatorId(Long eventId, Long initiatorId);
+
+    EventRequestStatusUpdateResultDto changeEventState(
+            Long userId,
+            Long eventId,
+            EventRequestStatusUpdateRequestDto requestStatusUpdateRequest);
 
     void saveHit(HttpServletRequest request);
 }

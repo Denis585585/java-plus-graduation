@@ -2,9 +2,9 @@ package ru.practicum.categories.mapper;
 
 import org.mapstruct.Mapper;
 import org.mapstruct.MappingConstants;
-import ru.practicum.categories.dto.CategoryDto;
 import ru.practicum.categories.model.Category;
-import ru.practicum.categories.dto.NewCategoryDto;
+import ru.practicum.dto.categories.CategoryDto;
+import ru.practicum.dto.categories.NewCategoryDto;
 
 @Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
 public interface CategoryMapper {

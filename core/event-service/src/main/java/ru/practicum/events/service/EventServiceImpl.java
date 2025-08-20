@@ -6,19 +6,23 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import ru.practicum.categories.model.Category;
+import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.categories.repository.CategoryRepository;
+import ru.practicum.categories.model.Category;
+import ru.practicum.client.RequestClient;
+import ru.practicum.client.UserClient;
 import ru.practicum.dto.EndpointHitDto;
-import ru.practicum.dto.UserDto;
 import ru.practicum.dto.ViewStatsDto;
-import ru.practicum.events.client.RequestClient;
-import ru.practicum.events.client.UserClient;
-import ru.practicum.events.dto.*;
+import ru.practicum.dto.events.*;
+import ru.practicum.dto.request.ParticipationRequestDto;
+import ru.practicum.dto.request.RequestStatus;
+import ru.practicum.dto.user.UserShortDto;
 import ru.practicum.events.mapper.EventMapper;
 import ru.practicum.events.mapper.LocationMapper;
 import ru.practicum.events.model.Event;
@@ -26,26 +30,24 @@ import ru.practicum.events.model.Like;
 import ru.practicum.events.repository.EventRepository;
 import ru.practicum.events.repository.LikeRepository;
 import ru.practicum.events.repository.LocationRepository;
-import ru.practicum.events.util.AdminEventState;
-import ru.practicum.events.util.EventState;
-import ru.practicum.events.util.StateActionForUser;
+import ru.practicum.dto.events.AdminEventState;
+import ru.practicum.dto.events.EventState;
+import ru.practicum.dto.events.StateActionForUser;
+import ru.practicum.exceptions.ConflictDataException;
 import ru.practicum.exceptions.EventDateValidationException;
 import ru.practicum.exceptions.NotFoundException;
 import stat.StatClient;
 
-import java.security.InvalidParameterException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 
-
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class EventServiceImpl implements EventService {
-
     private final EventRepository eventRepository;
     private final LikeRepository likeRepository;
     private final LocationRepository locationRepository;
@@ -53,8 +55,9 @@ public class EventServiceImpl implements EventService {
     private final CategoryRepository categoryRepository;
     private final EventMapper eventMapper;
     private final StatClient statClient;
-    private final RequestClient requestClient;
     private final UserClient userClient;
+    private final RequestClient requestClient;
+
     private static final String START = "2025-01-01 00:00:00";
     private static final String END = "2025-12-31 23:59:59";
 
@@ -67,26 +70,28 @@ public class EventServiceImpl implements EventService {
         if (eventParams.getRangeEnd() == null) {
             eventParams.setRangeEnd(LocalDateTime.now().plusYears(1));
         }
-        List<EventFullDto> events = eventMapper.toEventFullDto(eventRepository.findAdminEvents(
+
+        Page<Event> events = eventRepository.findAdminEvents(
                 eventParams.getUsers(),
                 eventParams.getStates(),
                 eventParams.getCategories(),
                 eventParams.getRangeStart(),
                 eventParams.getRangeEnd(),
                 page
-        ));
-        events.forEach(event -> event.setConfirmedRequests(requestClient.getConfirmedRequestsCount(event.getId())));
-        if (events.isEmpty()) {
-            return List.of();
-        }
-        return events;
+        );
+
+        return events.stream()
+                .map(event -> {
+                    EventFullDto dto = eventMapper.toEventFullDto(event);
+                    dto.setInitiator(userClient.getById(event.getInitiatorId()));
+                    return dto;
+                })
+                .toList();
     }
 
-    @Override
-    public EventFullDto updateAdminEvent(Integer eventId, UpdateEventAdminRequest updateEventAdminRequest) {
+    public EventFullDto updateAdminEvent(Long eventId, UpdateEventAdminRequestDto updateEventAdminRequest) {
         Event event = eventRepository.findById(eventId)
                 .orElseThrow(() -> new NotFoundException(String.format("Event with id=%d was not found", eventId)));
-
         if (updateEventAdminRequest.getStateAction() == AdminEventState.PUBLISH_EVENT && event.getState() != EventState.PENDING) {
             throw new DataIntegrityViolationException("Event should be in PENDING state");
         }
@@ -116,57 +121,78 @@ public class EventServiceImpl implements EventService {
         Optional.ofNullable(updateEventAdminRequest.getParticipantLimit()).ifPresent(event::setParticipantLimit);
         Optional.ofNullable(updateEventAdminRequest.getRequestModeration()).ifPresent(event::setRequestModeration);
         Optional.ofNullable(updateEventAdminRequest.getTitle()).ifPresent(event::setTitle);
+        if (updateEventAdminRequest.getConfirmedRequests() != null) {
+            event.setConfirmedRequests(updateEventAdminRequest.getConfirmedRequests());
+        } else {
+            event.setConfirmedRequests(event.getConfirmedRequests());
+        }
+        Event savedEvent = eventRepository.save(event);
+        UserShortDto initiatorDto = null;
+        if (savedEvent.getInitiatorId() != null) {
+            initiatorDto = userClient.getById(savedEvent.getInitiatorId());
+        }
         log.info("Event with ID={} was updated", eventId);
-        return eventMapper.toEventFullDto(eventRepository.save(event));
+        return eventMapper.toEventFullDto(savedEvent, initiatorDto);
     }
 
     @Override
-    public List<EventShortDto> getEventsByUser(Integer userId, Integer from, Integer size) {
+    public List<EventShortDto> getEventsByUser(Long userId, Integer from, Integer size) {
+        UserShortDto user = getUserById(userId);
         Pageable pageable = PageRequest.of(from / size, size);
         log.info("Получение событий пользователем с ID={}", userId);
         return eventRepository.findAllByInitiatorId(userId, pageable).stream()
-                .map(eventMapper::toEventShortDto)
+                .map(event -> eventMapper.toEventShortDto(event, user))
                 .toList();
     }
 
+    private UserShortDto getUserById(Long userId) {
+        UserShortDto user = userClient.getById(userId);
+        if (user == null) {
+            throw new NotFoundException("Такого пользователя не существует: " + userId);
+        }
+
+        return user;
+    }
+
     @Override
-    public EventFullDto createEvent(Integer userId, NewEventDto newEventDto) {
+    public EventFullDto createEvent(Long userId, NewEventDto newEventDto) {
         log.info("Создание события пользователем с ID={}", userId);
-        if (newEventDto.getEventDate() != null && !newEventDto.getEventDate()
-                .isAfter(LocalDateTime.now().plusHours(2))) {
+        if (newEventDto.getEventDate() != null &&
+                !newEventDto.getEventDate().isAfter(LocalDateTime.now().plusHours(2))) {
             throw new EventDateValidationException("Event date should be in 2+ hours after now");
         }
         Category category = getCategory(newEventDto.getCategory());
-        UserDto userDto = userClient.findById(userId);
-        Event event = eventMapper.toEvent(newEventDto, category, userDto.getId());
+
+        Event event = eventMapper.toEvent(newEventDto, category, userId);
         event.setLocation(locationRepository.save(locationMapper.toLocation(newEventDto.getLocation())));
-        if (newEventDto.getPaid() == null) {
-            event.setPaid(false);
-        }
-        if (newEventDto.getParticipantLimit() == null) {
-            event.setParticipantLimit(0L);
-        }
-        if (newEventDto.getRequestModeration() == null) {
-            event.setRequestModeration(true);
-        }
-        log.info("Event was created");
-        return eventMapper.toEventFullDto(eventRepository.save(event));
+        if (newEventDto.getPaid() == null) event.setPaid(false);
+        if (newEventDto.getParticipantLimit() == null) event.setParticipantLimit(0L);
+        if (newEventDto.getRequestModeration() == null) event.setRequestModeration(true);
+
+        Event saved = eventRepository.save(event);
+        EventFullDto dto = eventMapper.toEventFullDto(saved);
+        dto.setInitiator(userClient.getById(userId));
+        return dto;
     }
 
     @Override
-    public EventFullDto getFullEventInformation(Integer userId, Integer eventId) {
-        log.info("Получение полной информации о событии с ID={}", eventId);
-        return eventMapper.toEventFullDto(eventRepository.findByIdAndInitiatorId(eventId, userId)
-                .orElseThrow(() -> new RuntimeException(String.format("Event with ID=%d was not found ", eventId))));
+    public EventFullDto getFullEventInformation(Long userId, Long eventId) {
+        Event event = eventRepository.findByIdAndInitiatorId(eventId, userId)
+                .orElseThrow(() -> new RuntimeException(
+                        String.format("Event with ID=%d was not found ", eventId)));
+
+        EventFullDto dto = eventMapper.toEventFullDto(event);
+        dto.setInitiator(userClient.getById(event.getInitiatorId()));
+        return dto;
     }
 
     @Override
-    public EventFullDto updateEventByUser(Integer userId, Integer eventId, UpdateEventUserDto updateEventUserDto) {
+    public EventFullDto updateEventByUser(Long userId, Long eventId, UpdateEventUserDto updateEventUserDto) {
         log.info("Обновление события с ID={} пользователем с ID={}", eventId, userId);
         Event event = eventRepository.findByIdAndInitiatorId(eventId, userId)
                 .orElseThrow(() -> new RuntimeException(String.format("Event with ID=%d was not found ", eventId)));
         if (event.getPublishedOn() != null) {
-            throw new InvalidParameterException("Event is already published");
+            throw new ConflictDataException("Event is already published");
         }
         if (updateEventUserDto.getEventDate() != null && !updateEventUserDto.getEventDate()
                 .isAfter(LocalDateTime.now().plusHours(2))) {
@@ -193,8 +219,13 @@ public class EventServiceImpl implements EventService {
                 event.setState(EventState.CANCELED);
             }
         }
+        Event savedEvent = eventRepository.save(event);
+        UserShortDto initiatorDto = null;
+        if (savedEvent.getInitiatorId() != null) {
+            initiatorDto = userClient.getById(savedEvent.getInitiatorId());
+        }
         log.info("Event with ID={} was updated", eventId);
-        return eventMapper.toEventFullDto(eventRepository.save(event));
+        return eventMapper.toEventFullDto(savedEvent, initiatorDto);
     }
 
     @Override
@@ -211,7 +242,7 @@ public class EventServiceImpl implements EventService {
             throw new EventDateValidationException("End date should be before start date");
         }
 
-        List<Event> events = eventRepository.findPublicEvents(
+        Page<Event> events = eventRepository.findPublicEvents(
                 eventPublicParam.getText(),
                 eventPublicParam.getCategory(),
                 eventPublicParam.getPaid(),
@@ -228,11 +259,11 @@ public class EventServiceImpl implements EventService {
             return switch (eventPublicParam.getSort()) {
                 case EVENT_DATE -> events.stream()
                         .sorted(Comparator.comparing(Event::getEventDate))
-                        .map(eventMapper::toEventShortDto)
+                        .map(event -> eventMapper.toEventShortDto(event, getUserById(event.getInitiatorId())))
                         .toList();
                 case VIEWS -> events.stream()
                         .sorted(Comparator.comparing(Event::getViews))
-                        .map(eventMapper::toEventShortDto)
+                        .map(event -> eventMapper.toEventShortDto(event, getUserById(event.getInitiatorId())))
                         .toList();
             };
         }
@@ -241,14 +272,14 @@ public class EventServiceImpl implements EventService {
             addViews("/events/" + event.getId(), event);
         }
         return events.stream()
-                .map(eventMapper::toEventShortDto)
+                .map(event -> eventMapper.toEventShortDto(event, getUserById(event.getInitiatorId())))
                 .toList();
     }
 
     @Override
-    public EventFullDto publicGetEvent(Integer eventId) {
+    public EventFullDto publicGetEvent(Long eventId) {
         Event event = eventRepository.findById(eventId)
-                .orElseThrow(() -> new NotFoundException(String.format("Event with ID=%d was not found", eventId)));
+                .orElseThrow(() -> new ConflictDataException(String.format("Event with ID=%d was not found", eventId)));
         if (event.getState() != EventState.PUBLISHED) {
             throw new NotFoundException(String.format("Event with ID=%d was not published", eventId));
         }
@@ -258,10 +289,10 @@ public class EventServiceImpl implements EventService {
     }
 
     @Override
-    public Long addLike(Integer userId, Integer eventId) {
+    public Long addLike(Long userId, Long eventId) {
         Event event = getEvent(eventId);
 
-        if (!likeRepository.existsByUserIdAndEventId(userId, eventId)) {
+        if (!likeRepository.existsByIdUserIdAndIdEventId(userId, eventId)) {
             Like like = new Like(userId, event);
             likeRepository.save(like);
         }
@@ -269,32 +300,34 @@ public class EventServiceImpl implements EventService {
     }
 
     @Override
-    public Long removeLike(Integer userId, Integer eventId) {
-        if (likeRepository.existsByUserIdAndEventId(userId, eventId)) {
-            likeRepository.deleteByUserIdAndEventId(userId, eventId);
+    public Long removeLike(Long userId, Long eventId) {
+        if (likeRepository.existsByIdUserIdAndIdEventId(userId, eventId)) {
+            likeRepository.deleteByIdUserIdAndIdEventId(userId, eventId);
         }
         return likeRepository.countByEventId(eventId);
     }
 
     @Override
-    public List<UserDto> getLikedUsers(Integer eventId) {
-        Event event = getEvent(eventId);
-        addViews("/events/" + event.getId(), event);
+    public List<UserShortDto> getLikedUsers(Long eventId) {
         List<Like> likes = likeRepository.findAllByEventId(eventId);
-        return likes.stream().map(like -> userClient.findById(like.getUserId())).toList();
+        List<Long> userIds = likes.stream()
+                .map(Like::getUserId)
+                .toList();
+        return userClient.getByIds(userIds);
     }
 
     @Override
-    public List<EventFullDto> adminGetEventsLikedByUser(Integer userId) {
-        List<Integer> eventIds = getEventIdsLikedByUser(userId);
+    public List<EventFullDto> adminGetEventsLikedByUser(Long userId) {
+        List<Long> eventIds = getEventIdsLikedByUser(userId);
         return eventMapper.toEventFullDto(eventRepository.findAllById(eventIds));
     }
 
     @Override
-    public List<EventShortDto> getAllLikedEvents(Integer userId) {
-        List<Integer> eventIds = getEventIdsLikedByUser(userId);
+    public List<EventShortDto> getAllLikedEvents(Long userId) {
+        UserShortDto user = getUserById(userId);
+        List<Long> eventIds = getEventIdsLikedByUser(userId);
         return eventRepository.findAllById(eventIds).stream()
-                .map(eventMapper::toEventShortDto)
+                .map(event -> eventMapper.toEventShortDto(event, user))
                 .toList();
     }
 
@@ -313,9 +346,9 @@ public class EventServiceImpl implements EventService {
         }
     }
 
-    private List<Integer> getEventIdsLikedByUser(Integer userId) {
-        getUser(userId);
-        List<Like> likes = likeRepository.findAllByUserId(userId);
+    private List<Long> getEventIdsLikedByUser(Long userId) {
+        userClient.getById(userId);
+        List<Like> likes = likeRepository.findAllByIdUserId(userId);
         if (likes.isEmpty()) {
             throw new NotFoundException(String.format("User with id=%d did not like any events", userId));
         }
@@ -338,16 +371,12 @@ public class EventServiceImpl implements EventService {
         log.info("Views was updated, views= {}", event.getViews());
     }
 
-    private Category getCategory(Integer categoryId) {
+    private Category getCategory(Long categoryId) {
         return categoryRepository.findById(categoryId)
                 .orElseThrow(() -> new NotFoundException(String.format("Category with ID=%d was not found", categoryId)));
     }
 
-    private UserDto getUser(Integer userId) throws NotFoundException {
-        return userClient.findById(userId);
-    }
-
-    private Event getEvent(Integer eventId) {
+    public Event getEvent(Long eventId) {
         Event event = eventRepository.findById(eventId)
                 .orElseThrow(() -> new NotFoundException(String.format("Event with id=%d was not found", eventId)));
 
@@ -356,9 +385,95 @@ public class EventServiceImpl implements EventService {
         }
         return event;
     }
+
+    @Override
+    public List<EventFullDto> getByLocation(Long locationId) {
+        return eventRepository.findAllByLocationId(locationId).stream()
+                .map(eventMapper::toEventFullDto)
+                .toList();
+    }
+
+    @Override
+    public EventFullDto getEventById(Long eventId) {
+        Event event = eventRepository.findById(eventId).orElseThrow(() ->
+                new NotFoundException("Такого события не существует: " + eventId));
+        UserShortDto initiator = userClient.getById(event.getInitiatorId());
+        return eventMapper.toEventFullDto(event, initiator);
+    }
+
+    @Override
+    public List<ParticipationRequestDto> getEventAllParticipationRequests(Long eventId, Long userId) {
+        Event event = checkAndGetEventByIdAndInitiatorId(eventId, userId);
+        return requestClient.getByStatus(event.getId(), RequestStatus.PENDING);
+    }
+
+    @Override
+    public Event checkAndGetEventByIdAndInitiatorId(Long eventId, Long initiatorId) {
+        return eventRepository.findByIdAndInitiatorId(eventId, initiatorId)
+                .orElseThrow(() -> new NotFoundException(String.format("On event operations - " +
+                        "Event doesn't exist with id %s or not available for User with id %s: ", eventId, initiatorId)));
+    }
+
+    @Override
+    @Transactional
+    public EventRequestStatusUpdateResultDto changeEventState(
+            Long userId,
+            Long eventId,
+            EventRequestStatusUpdateRequestDto requestStatusUpdateRequest) {
+        Event event = checkAndGetEventByIdAndInitiatorId(eventId, userId);
+        Long participantsLimit = event.getParticipantLimit();
+
+        List<ParticipationRequestDto> confirmedRequests = requestClient.getByStatus(eventId,
+                RequestStatus.CONFIRMED);
+        log.info("confirmedRequests: {}", confirmedRequests);
+
+        List<ParticipationRequestDto> requestToChangeStatus = requestClient.getByIds(requestStatusUpdateRequest.getRequestIds());
+        List<Long> idsToChangeStatus = requestToChangeStatus.stream()
+                .map(ParticipationRequestDto::getId)
+                .toList();
+        log.info("idsToChangeStatus: {}", idsToChangeStatus);
+        if (!event.getRequestModeration() || event.getParticipantLimit() == 0) {
+            log.info("Заявки подтверждать не требуется");
+            return null;
+        }
+
+        log.info("Заявки:  Лимит: {}, подтвержденных заявок {}, запрошенных заявок {}, разница между ними: {}", participantsLimit,
+                confirmedRequests.size(), requestStatusUpdateRequest.getRequestIds().size(), (participantsLimit
+                        - confirmedRequests.size() - requestStatusUpdateRequest.getRequestIds().size()));
+
+        if (requestStatusUpdateRequest.getStatus().equals(RequestStatus.CONFIRMED)) {
+            log.info("меняем статус заявок для статуса: {}", RequestStatus.CONFIRMED);
+            if ((participantsLimit - (confirmedRequests.size()) - requestStatusUpdateRequest.getRequestIds().size()) >= 0) {
+                List<ParticipationRequestDto> requestUpdated = requestClient.updateStatus(
+                        RequestStatus.CONFIRMED, idsToChangeStatus);
+
+                List<ParticipationRequestDto> allConfirmed = requestClient.getByStatus(eventId, RequestStatus.CONFIRMED);
+
+                event.setConfirmedRequests((long) allConfirmed.size());
+                eventRepository.saveAndFlush(event);
+
+                log.info("Сохранили confirmedRequests = {}", allConfirmed.size());
+
+                return new EventRequestStatusUpdateResultDto(requestUpdated, null);
+            } else {
+                throw new ConflictDataException("слишком много участников. Лимит: " + participantsLimit +
+                        ", уже подтвержденных заявок: " + confirmedRequests.size() + ", а заявок на одобрение: " +
+                        idsToChangeStatus.size() +
+                        ". Разница между ними: " + (participantsLimit - confirmedRequests.size() -
+                        idsToChangeStatus.size()));
+            }
+        } else if (requestStatusUpdateRequest.getStatus().equals(RequestStatus.REJECTED)) {
+            log.info("меняем статус заявок для статуса: {}", RequestStatus.REJECTED);
+
+            for (ParticipationRequestDto request : requestToChangeStatus) {
+                if (request.getStatus() == RequestStatus.CONFIRMED) {
+                    throw new ConflictDataException("Заявка" + request.getStatus() + "уже подтверждена.");
+                }
+            }
+            List<ParticipationRequestDto> requestUpdated = requestClient.updateStatus(
+                    RequestStatus.REJECTED, idsToChangeStatus);
+            return new EventRequestStatusUpdateResultDto(null, requestUpdated);
+        }
+        return null;
+    }
 }
-
-
-
-
-

@@ -6,9 +6,11 @@ import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import ru.practicum.events.dto.EventFullDto;
-import ru.practicum.events.dto.UpdateEventAdminRequest;
-import ru.practicum.events.dto.EventAdminParams;
+
+import ru.practicum.dto.events.EventAdminParams;
+import ru.practicum.dto.events.EventFullDto;
+
+import ru.practicum.dto.events.UpdateEventAdminRequestDto;
 import ru.practicum.events.service.EventService;
 
 import java.time.LocalDateTime;
@@ -23,9 +25,9 @@ public class EventAdminController {
     private final EventService eventService;
 
     @GetMapping
-    public ResponseEntity<List<EventFullDto>> adminGetEvents(@RequestParam(required = false) List<Integer> users,
+    public ResponseEntity<List<EventFullDto>> adminGetEvents(@RequestParam(required = false) List<Long> users,
                                                              @RequestParam(required = false) List<String> states,
-                                                             @RequestParam(required = false) List<Integer> categories,
+                                                             @RequestParam(required = false) List<Long> categories,
                                                              @RequestParam(required = false)
                                                              @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime rangeStart,
                                                              @RequestParam(required = false)
@@ -37,13 +39,13 @@ public class EventAdminController {
     }
 
     @PatchMapping("/{eventId}")
-    public ResponseEntity<EventFullDto> adminUpdateEvents(@PathVariable("eventId") Integer eventId,
-                                                          @Valid @RequestBody UpdateEventAdminRequest updateAdminEvent) {
-        return ResponseEntity.ok().body(eventService.updateAdminEvent(eventId, updateAdminEvent));
+    public ResponseEntity<EventFullDto> adminUpdateEvents(@PathVariable("eventId") Long eventId,
+                                                          @Valid @RequestBody UpdateEventAdminRequestDto UpdateEventAdminRequestDto) {
+        return ResponseEntity.ok().body(eventService.updateAdminEvent(eventId, UpdateEventAdminRequestDto));
     }
 
     @GetMapping("/{userId}/like")
-    public ResponseEntity<List<EventFullDto>> adminGetEventsLikedByUser(@PathVariable("userId") Integer userId) {
+    public ResponseEntity<List<EventFullDto>> adminGetEventsLikedByUser(@PathVariable("userId") Long userId) {
         return ResponseEntity.ok().body(eventService.adminGetEventsLikedByUser(userId));
     }
 }

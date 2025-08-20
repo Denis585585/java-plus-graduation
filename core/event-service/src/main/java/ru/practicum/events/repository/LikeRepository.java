@@ -3,19 +3,20 @@ package ru.practicum.events.repository;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 import ru.practicum.events.model.Like;
+import ru.practicum.events.model.LikeId;
 
 import java.util.List;
 
 @Repository
-public interface LikeRepository extends JpaRepository<Like, Long> {
+public interface LikeRepository extends JpaRepository<Like, LikeId> {
 
-    boolean existsByUserIdAndEventId(Integer userId, Integer eventId);
+    boolean existsByIdUserIdAndIdEventId(Long userId, Long eventId);
 
-    void deleteByUserIdAndEventId(Integer userId, Integer eventId);
+    void deleteByIdUserIdAndIdEventId(Long userId, Long eventId);
 
-    Long countByEventId(Integer eventId);
+    Long countByEventId(Long eventId);
 
-    List<Like> findAllByEventId(Integer eventId);
+    List<Like> findAllByEventId(Long eventId);
 
-    List<Like> findAllByUserId(Integer userId);
+    List<Like> findAllByIdUserId(Long userId);
 }

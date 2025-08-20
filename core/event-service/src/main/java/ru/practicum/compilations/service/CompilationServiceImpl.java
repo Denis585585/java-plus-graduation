@@ -4,12 +4,13 @@ import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import ru.practicum.compilations.dto.CompilationDto;
-import ru.practicum.compilations.dto.NewCompilationDto;
-import ru.practicum.compilations.dto.UpdateCompilationRequest;
+import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.compilations.mapper.CompilationMapper;
 import ru.practicum.compilations.model.Compilation;
 import ru.practicum.compilations.repository.CompilationRepository;
+import ru.practicum.dto.compilations.CompilationDto;
+import ru.practicum.dto.compilations.NewCompilationDto;
+import ru.practicum.dto.compilations.UpdateCompilationRequest;
 import ru.practicum.events.model.Event;
 import ru.practicum.events.repository.EventRepository;
 
@@ -76,6 +77,7 @@ public class CompilationServiceImpl implements CompilationService {
     }
 
     @Override
+    @Transactional
     public CompilationDto updateCompilation(Long compId, UpdateCompilationRequest updateCompilationRequest) {
         log.info("Attempting to update compilation with ID: {}", compId);
 

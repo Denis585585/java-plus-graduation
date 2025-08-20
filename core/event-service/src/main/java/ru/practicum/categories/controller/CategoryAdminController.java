@@ -6,9 +6,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import ru.practicum.categories.dto.CategoryDto;
-import ru.practicum.categories.dto.NewCategoryDto;
 import ru.practicum.categories.service.CategoryService;
+import ru.practicum.dto.categories.CategoryDto;
+import ru.practicum.dto.categories.NewCategoryDto;
 
 @RestController
 @RequestMapping(path = "admin/categories")
@@ -24,13 +24,13 @@ public class CategoryAdminController {
     }
 
     @PatchMapping(path = "/{catId}")
-    public ResponseEntity<CategoryDto> updateCategory(@PathVariable Integer catId,
+    public ResponseEntity<CategoryDto> updateCategory(@PathVariable Long catId,
                                                       @Valid @RequestBody CategoryDto categoryDto) {
         return ResponseEntity.ok().body(categoryService.updateCategory(catId, categoryDto));
     }
 
     @DeleteMapping(path = "/{catId}")
-    public ResponseEntity<Void> deleteCategory(@PathVariable Integer catId) {
+    public ResponseEntity<Void> deleteCategory(@PathVariable Long catId) {
         categoryService.deleteCategory(catId);
         return ResponseEntity.noContent().build();
     }

@@ -3,8 +3,8 @@ package ru.practicum.categories.controller;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import ru.practicum.categories.dto.CategoryDto;
 import ru.practicum.categories.service.CategoryService;
+import ru.practicum.dto.categories.CategoryDto;
 
 import java.util.List;
 
@@ -22,7 +22,7 @@ public class CategoryPublicController {
     }
 
     @GetMapping("/{catId}")
-    public ResponseEntity<CategoryDto> getCategory(@PathVariable Integer catId) {
+    public ResponseEntity<CategoryDto> getCategory(@PathVariable Long catId) {
         return ResponseEntity.ok().body(categoryService.getCategory(catId));
     }
 }

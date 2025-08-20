@@ -2,9 +2,9 @@ package ru.practicum.compilations.mapper;
 
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
-import ru.practicum.compilations.dto.CompilationDto;
-import ru.practicum.compilations.dto.NewCompilationDto;
 import ru.practicum.compilations.model.Compilation;
+import ru.practicum.dto.compilations.CompilationDto;
+import ru.practicum.dto.compilations.NewCompilationDto;
 import ru.practicum.events.mapper.EventMapper;
 import ru.practicum.events.model.Event;
 
