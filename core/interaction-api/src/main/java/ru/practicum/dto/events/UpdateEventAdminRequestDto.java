@@ -1,6 +1,7 @@
 package ru.practicum.dto.events;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.Future;
 import jakarta.validation.constraints.PositiveOrZero;
 import jakarta.validation.constraints.Size;
@@ -22,6 +23,7 @@ public class UpdateEventAdminRequestDto {
     @NullOrNotBlank
     @Size(min = 20, max = 2000)
     private String annotation;
+    @JsonProperty("category")
     private Long categoryId;
     @NullOrNotBlank
     @Size(min = 20, max = 7000)
