@@ -92,7 +92,6 @@ public class UserServiceImpl implements UserService {
     public UserDto registerUser(UserRequestDto userRequestDto) {
         log.info("registerUser params: userRequestDto = {}", userRequestDto);
         User user = userRepository.save(userMapper.toEntity(userRequestDto));
-        checkEmail(user);
         log.info("registerUser result user = {}", user);
         return userMapper.toUserDto(user);
     }

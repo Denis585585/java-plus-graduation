@@ -44,9 +44,9 @@ public class RequestServiceImpl implements RequestService {
     @Transactional
     public ParticipationRequestDto createRequest(Long userId, Long eventId) {
         EventFullDto event = eventClient.getById(eventId);
-        UserShortDto user = userClient.getById(userId);
+        userClient.getById(userId);
 
-        checkRequest(user, event);
+        checkRequest(userId, event);
 
         RequestStatus status = (!event.getRequestModeration() || event.getParticipantLimit() == 0)
                 ? RequestStatus.CONFIRMED
@@ -149,23 +149,23 @@ public class RequestServiceImpl implements RequestService {
         return result;
     }
 
-    private void checkRequest(UserShortDto requester, EventFullDto event) {
-        if (requestRepository.existsByRequesterIdAndEventId(requester.getId(), event.getId())) {
+    private void checkRequest(Long requesterId, EventFullDto event) {
+        if (requestRepository.existsByRequesterIdAndEventId(requesterId, event.getId())) {
             throw new ConflictDataException("Нельзя создать повторный запрос");
         }
 
-        if (event.getInitiator().getId().equals(requester.getId())) {
+        UserShortDto initiator = event.getInitiator();
+        if (initiator != null && initiator.getId().equals(requesterId)) {
             throw new ConflictDataException("Инициатор события не может добавить запрос на участие в своём событии");
         }
 
-        if (!event.getState().equals(EventState.PUBLISHED)) {
+        if (event.getState() != EventState.PUBLISHED) {
             throw new ConflictDataException("Нельзя участвовать в неопубликованных событиях");
         }
 
         long confirmedCount = requestRepository.findAllByEventId(event.getId()).stream()
                 .filter(r -> RequestStatus.CONFIRMED.equals(r.getStatus()))
                 .count();
-
         if (event.getParticipantLimit() != 0 && confirmedCount >= event.getParticipantLimit()) {
             throw new ConflictDataException("У события достигнут лимит запросов на участие");
         }
