@@ -2,12 +2,14 @@ package ru.practicum.events.service;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -15,6 +17,8 @@ import ru.practicum.categories.repository.CategoryRepository;
 import ru.practicum.categories.model.Category;
 import ru.practicum.client.RequestClient;
 import ru.practicum.client.UserClient;
+import ru.practicum.dto.EndpointHitDto;
+import ru.practicum.dto.ViewStatsDto;
 import ru.practicum.dto.events.*;
 import ru.practicum.dto.request.ParticipationRequestDto;
 import ru.practicum.dto.request.RequestStatus;
@@ -32,10 +36,10 @@ import ru.practicum.dto.events.StateActionForUser;
 import ru.practicum.exceptions.ConflictDataException;
 import ru.practicum.exceptions.EventDateValidationException;
 import ru.practicum.exceptions.NotFoundException;
-import ru.practicum.dto.ViewStatsDto;
 import stat.StatClient;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
@@ -327,6 +331,21 @@ public class EventServiceImpl implements EventService {
                 .toList();
     }
 
+    @Override
+    public void saveHit(HttpServletRequest request) {
+        EndpointHitDto hitDto = new EndpointHitDto();
+        hitDto.setApp("event-service");
+        hitDto.setUri(request.getRequestURI());
+        hitDto.setIp(request.getRemoteAddr());
+        hitDto.setTimestamp(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+        ResponseEntity<Object> response = statClient.saveHit(hitDto);
+        if (response.getStatusCode() == HttpStatus.OK || response.getStatusCode() == HttpStatus.CREATED) {
+            System.out.println("Hit saved successfully for URI: " + request.getRequestURI());
+        } else {
+            System.err.println("Failed to save hit: " + response.getStatusCode());
+        }
+    }
+
     private List<Long> getEventIdsLikedByUser(Long userId) {
         userClient.getById(userId);
         List<Like> likes = likeRepository.findAllByIdUserId(userId);
@@ -344,7 +363,11 @@ public class EventServiceImpl implements EventService {
         ObjectMapper mapper = new ObjectMapper();
         List<ViewStatsDto> views = mapper.convertValue(response.getBody(), new TypeReference<List<ViewStatsDto>>() {
         });
-        event.setViews(views.isEmpty() ? 0L : (long) views.size());
+        if (views.isEmpty()) {
+            event.setViews(0L);
+        } else {
+            event.setViews((long) views.size());
+        }
         log.info("Views was updated, views= {}", event.getViews());
     }
 

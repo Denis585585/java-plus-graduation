@@ -61,16 +61,16 @@ public class EventPrivateController {
     }
 
     @GetMapping(path = "/users/{userId}/events/{eventId}/requests")
-    public List<ParticipationRequestDto> getParticipationRequests(@PathVariable("userId") Long userId,
-                                                                  @PathVariable("eventId") Long eventId) {
-        return eventService.getEventAllParticipationRequests(eventId, userId);
+    public ResponseEntity<List<ParticipationRequestDto>> getParticipationRequests(@PathVariable("userId") Long userId,
+                                                                                  @PathVariable("eventId") Long eventId) {
+        return ResponseEntity.ok().body(eventService.getEventAllParticipationRequests(eventId, userId));
     }
 
     @PatchMapping(path = "/users/{userId}/events/{eventId}/requests")
-    public EventRequestStatusUpdateResultDto updatedEventRequestStatus(@PathVariable("userId") Long userId,
-                                                                       @PathVariable("eventId") Long eventId,
-                                                                       @RequestBody EventRequestStatusUpdateRequestDto request) {
-        return eventService.changeEventState(userId, eventId, request);
+    public ResponseEntity<EventRequestStatusUpdateResultDto> updatedEventRequestStatus(@PathVariable("userId") Long userId,
+                                                                                       @PathVariable("eventId") Long eventId,
+                                                                                       @RequestBody EventRequestStatusUpdateRequestDto request) {
+        return ResponseEntity.ok().body(eventService.changeEventState(userId, eventId, request));
     }
 }
 
