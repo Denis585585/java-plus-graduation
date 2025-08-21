@@ -12,7 +12,7 @@ import java.util.List;
 @NoArgsConstructor
 public class EventPublicParam {
     private String text;
-    private List<Long> categoryIds;
+    private List<Long> category;
     private Boolean paid;
     private LocalDateTime rangeStart;
     private LocalDateTime rangeEnd;

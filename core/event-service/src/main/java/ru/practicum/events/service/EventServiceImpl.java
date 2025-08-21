@@ -13,8 +13,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import ru.practicum.categories.model.Category;
 import ru.practicum.categories.repository.CategoryRepository;
+import ru.practicum.categories.model.Category;
 import ru.practicum.client.RequestClient;
 import ru.practicum.client.UserClient;
 import ru.practicum.dto.EndpointHitDto;
@@ -30,11 +30,14 @@ import ru.practicum.events.model.Like;
 import ru.practicum.events.repository.EventRepository;
 import ru.practicum.events.repository.LikeRepository;
 import ru.practicum.events.repository.LocationRepository;
+import ru.practicum.dto.events.AdminEventState;
+import ru.practicum.dto.events.EventState;
+import ru.practicum.dto.events.StateActionForUser;
+import ru.practicum.exceptions.ConflictDataException;
 import ru.practicum.exceptions.EventDateValidationException;
 import ru.practicum.exceptions.NotFoundException;
 import stat.StatClient;
 
-import java.security.InvalidParameterException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Comparator;
@@ -69,9 +72,9 @@ public class EventServiceImpl implements EventService {
         }
 
         Page<Event> events = eventRepository.findAdminEvents(
-                eventParams.getUsersIds(),
+                eventParams.getUsers(),
                 eventParams.getStates(),
-                eventParams.getCategoriesIds(),
+                eventParams.getCategories(),
                 eventParams.getRangeStart(),
                 eventParams.getRangeEnd(),
                 page
@@ -105,8 +108,8 @@ public class EventServiceImpl implements EventService {
             }
         }
         Optional.ofNullable(updateEventAdminRequest.getAnnotation()).ifPresent(event::setAnnotation);
-        if (updateEventAdminRequest.getCategoryId() != null) {
-            Category category = getCategory(updateEventAdminRequest.getCategoryId());
+        if (updateEventAdminRequest.getCategory() != null) {
+            Category category = getCategory(updateEventAdminRequest.getCategory());
             event.setCategory(category);
         }
         Optional.ofNullable(updateEventAdminRequest.getDescription()).ifPresent(event::setDescription);
@@ -158,7 +161,7 @@ public class EventServiceImpl implements EventService {
                 !newEventDto.getEventDate().isAfter(LocalDateTime.now().plusHours(2))) {
             throw new EventDateValidationException("Event date should be in 2+ hours after now");
         }
-        Category category = getCategory(newEventDto.getCategoryId());
+        Category category = getCategory(newEventDto.getCategory());
 
         Event event = eventMapper.toEvent(newEventDto, category, userId);
         event.setLocation(locationRepository.save(locationMapper.toLocation(newEventDto.getLocation())));
@@ -189,15 +192,15 @@ public class EventServiceImpl implements EventService {
         Event event = eventRepository.findByIdAndInitiatorId(eventId, userId)
                 .orElseThrow(() -> new RuntimeException(String.format("Event with ID=%d was not found ", eventId)));
         if (event.getPublishedOn() != null) {
-            throw new InvalidParameterException("Event is already published");
+            throw new ConflictDataException("Event is already published");
         }
         if (updateEventUserDto.getEventDate() != null && !updateEventUserDto.getEventDate()
                 .isAfter(LocalDateTime.now().plusHours(2))) {
             throw new EventDateValidationException("Event date should be in 2+ hours after now");
         }
         Optional.ofNullable(updateEventUserDto.getAnnotation()).ifPresent(event::setAnnotation);
-        if (updateEventUserDto.getCategoryId() != null) {
-            Category category = getCategory(updateEventUserDto.getCategoryId());
+        if (updateEventUserDto.getCategory() != null) {
+            Category category = getCategory(updateEventUserDto.getCategory());
             event.setCategory(category);
         }
         Optional.ofNullable(updateEventUserDto.getDescription()).ifPresent(event::setDescription);
@@ -241,7 +244,7 @@ public class EventServiceImpl implements EventService {
 
         Page<Event> events = eventRepository.findPublicEvents(
                 eventPublicParam.getText(),
-                eventPublicParam.getCategoryIds(),
+                eventPublicParam.getCategory(),
                 eventPublicParam.getPaid(),
                 eventPublicParam.getRangeStart(),
                 eventPublicParam.getRangeEnd(),
@@ -276,7 +279,7 @@ public class EventServiceImpl implements EventService {
     @Override
     public EventFullDto publicGetEvent(Long eventId) {
         Event event = eventRepository.findById(eventId)
-                .orElseThrow(() -> new NotFoundException(String.format("Event with ID=%d was not found", eventId)));
+                .orElseThrow(() -> new ConflictDataException(String.format("Event with ID=%d was not found", eventId)));
         if (event.getState() != EventState.PUBLISHED) {
             throw new NotFoundException(String.format("Event with ID=%d was not published", eventId));
         }
@@ -453,7 +456,7 @@ public class EventServiceImpl implements EventService {
 
                 return new EventRequestStatusUpdateResultDto(requestUpdated, null);
             } else {
-                throw new InvalidParameterException("слишком много участников. Лимит: " + participantsLimit +
+                throw new ConflictDataException("слишком много участников. Лимит: " + participantsLimit +
                         ", уже подтвержденных заявок: " + confirmedRequests.size() + ", а заявок на одобрение: " +
                         idsToChangeStatus.size() +
                         ". Разница между ними: " + (participantsLimit - confirmedRequests.size() -
@@ -464,13 +467,13 @@ public class EventServiceImpl implements EventService {
 
             for (ParticipationRequestDto request : requestToChangeStatus) {
                 if (request.getStatus() == RequestStatus.CONFIRMED) {
-                    throw new DataIntegrityViolationException("Заявка" + request.getStatus() + "уже подтверждена.");
+                    throw new ConflictDataException("Заявка" + request.getStatus() + "уже подтверждена.");
                 }
             }
             List<ParticipationRequestDto> requestUpdated = requestClient.updateStatus(
                     RequestStatus.REJECTED, idsToChangeStatus);
             return new EventRequestStatusUpdateResultDto(null, requestUpdated);
         }
-        return new EventRequestStatusUpdateResultDto(null, null);
+        return null;
     }
 }

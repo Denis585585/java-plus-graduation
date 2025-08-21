@@ -22,5 +22,5 @@ public class NewCompilationDto {
     @Builder.Default
     private Boolean pinned = false;
 
-    private List<@NotNull @Positive Long> eventsIds;
+    private List<@NotNull @Positive Long> events;
 }

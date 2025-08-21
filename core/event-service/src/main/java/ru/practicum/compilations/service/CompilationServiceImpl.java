@@ -32,9 +32,9 @@ public class CompilationServiceImpl implements CompilationService {
     public CompilationDto createCompilation(NewCompilationDto newCompilationDto) {
         log.info("Creating a new compilation with title: {}", newCompilationDto.getTitle());
         Set<Event> eventSet = new HashSet<>();
-        if (newCompilationDto.getEventsIds() != null && !newCompilationDto.getEventsIds().isEmpty()) {
-            List<Event> events = eventRepository.findAllByIdIn(newCompilationDto.getEventsIds());
-            if (events.size() != newCompilationDto.getEventsIds().size()) {
+        if (newCompilationDto.getEvents() != null && !newCompilationDto.getEvents().isEmpty()) {
+            List<Event> events = eventRepository.findAllByIdIn(newCompilationDto.getEvents());
+            if (events.size() != newCompilationDto.getEvents().size()) {
                 throw new EntityNotFoundException("Some events were not found.");
             }
             eventSet.addAll(events);
@@ -92,9 +92,9 @@ public class CompilationServiceImpl implements CompilationService {
         }
 
         Set<Event> eventSet = new HashSet<>();
-        if (updateCompilationRequest.getEventsIds() != null && !updateCompilationRequest.getEventsIds().isEmpty()) {
-            List<Event> events = eventRepository.findAllByIdIn(updateCompilationRequest.getEventsIds());
-            if (events.size() != updateCompilationRequest.getEventsIds().size()) {
+        if (updateCompilationRequest.getEvents() != null && !updateCompilationRequest.getEvents().isEmpty()) {
+            List<Event> events = eventRepository.findAllByIdIn(updateCompilationRequest.getEvents());
+            if (events.size() != updateCompilationRequest.getEvents().size()) {
                 throw new EntityNotFoundException("Some events were not found.");
             }
             eventSet.addAll(events);

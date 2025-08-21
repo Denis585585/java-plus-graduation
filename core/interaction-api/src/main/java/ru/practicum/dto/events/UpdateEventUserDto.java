@@ -16,7 +16,7 @@ import java.time.LocalDateTime;
 public class UpdateEventUserDto {
     @Size(min = 20, max = 2000)
     private String annotation;
-    private Long categoryId;
+    private Long category;
 
     @Size(min = 20, max = 7000)
     private String description;

@@ -6,6 +6,6 @@ import lombok.Data;
 @Data
 @AllArgsConstructor
 public class RequestCountDto {
-    private Long eventId;
-    private Long quantity;
+    Long eventId;
+    Long quantity;
 }
