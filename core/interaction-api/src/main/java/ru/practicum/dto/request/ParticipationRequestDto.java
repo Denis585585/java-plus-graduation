@@ -6,6 +6,8 @@ import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import ru.practicum.dto.events.EventShortDto;
+import ru.practicum.dto.user.UserShortDto;
 
 import java.time.LocalDateTime;
 
@@ -16,11 +18,9 @@ public class ParticipationRequestDto {
     @NotNull(message = "Event ID cannot be null")
     private Long id;
     @NotNull
-    @JsonProperty("event")
-    private Long eventId;
+    private EventShortDto event;
     @NotNull
-    @JsonProperty("requester")
-    private Long requesterId;
+    private UserShortDto requester;
     private RequestStatus status;
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd' 'HH:mm:ss")
     private LocalDateTime created;
