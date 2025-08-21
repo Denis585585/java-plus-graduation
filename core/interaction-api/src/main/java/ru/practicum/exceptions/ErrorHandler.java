@@ -141,17 +141,6 @@ public class ErrorHandler {
 
     @ExceptionHandler
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    public ApiError handleInternalServerException(final InternalServerException e) {
-        log.error("{} {}", HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage(), e);
-        return new ApiError(
-                HttpStatus.INTERNAL_SERVER_ERROR,
-                "Internal server error.",
-                e.getMessage(),
-                getStackTrace(e));
-    }
-
-    @ExceptionHandler
-    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public ApiError handleException(final Exception e) {
         log.error("500 {}", e.getMessage(), e);
         return new ApiError(

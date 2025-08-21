@@ -9,8 +9,6 @@ import ru.practicum.client.UserClient;
 import ru.practicum.dto.events.EventFullDto;
 import ru.practicum.dto.events.EventState;
 import ru.practicum.dto.request.*;
-import ru.practicum.dto.user.UserShortDto;
-import ru.practicum.exceptions.ConflictDataException;
 import ru.practicum.exceptions.InvalidDataException;
 import ru.practicum.exceptions.NotFoundException;
 import ru.practicum.request.mapper.RequestMapper;
@@ -44,19 +42,16 @@ public class RequestServiceImpl implements RequestService {
     @Transactional
     public ParticipationRequestDto createRequest(Long userId, Long eventId) {
         EventFullDto event = eventClient.getById(eventId);
-        userClient.getById(userId);
 
-        checkRequest(userId, event);
-
-        RequestStatus status = (!event.getRequestModeration() || event.getParticipantLimit() == 0)
-                ? RequestStatus.CONFIRMED
-                : RequestStatus.PENDING;
+        checkRequest(userId, eventId);
 
         Request request = Request.builder()
                 .requesterId(userId)
                 .eventId(eventId)
                 .created(LocalDateTime.now())
-                .status(status)
+                .status(!event.getRequestModeration()
+                        || event.getParticipantLimit() == 0
+                        ? RequestStatus.CONFIRMED : RequestStatus.PENDING)
                 .build();
 
         request = requestRepository.save(request);
@@ -149,26 +144,20 @@ public class RequestServiceImpl implements RequestService {
         return result;
     }
 
-    private void checkRequest(Long requesterId, EventFullDto event) {
-        if (requestRepository.existsByRequesterIdAndEventId(requesterId, event.getId())) {
+    private void checkRequest(Long requesterId, Long eventId) {
+        if (requestRepository.existsByRequesterIdAndEventId(requesterId, eventId))
             throw new InvalidParameterException("Нельзя создать повторный запрос");
-        }
 
-        UserShortDto initiator = event.getInitiator();
-        if (initiator != null && initiator.getId().equals(requesterId)) {
+        EventFullDto event = eventClient.getById(eventId);
+        if (event.getInitiator().getId().equals(requesterId))
             throw new InvalidParameterException("Инициатор события не может добавить запрос на участие в своём событии");
-        }
 
-        if (event.getState() != EventState.PUBLISHED) {
+        if (!event.getState().equals(EventState.PUBLISHED))
             throw new InvalidParameterException("Нельзя участвовать в неопубликованных событиях");
-        }
 
-        long confirmedCount = requestRepository.findAllByEventId(event.getId()).stream()
-                .filter(r -> RequestStatus.CONFIRMED.equals(r.getStatus()))
-                .count();
-        if (event.getParticipantLimit() != 0 && confirmedCount >= event.getParticipantLimit()) {
+        List<Request> requests = requestRepository.findAllByEventId(eventId);
+        if (!event.getRequestModeration() && requests.size() >= event.getParticipantLimit())
             throw new InvalidParameterException("У события достигнут лимит запросов на участие");
-        }
     }
 
     private Request getRequestById(Long requestId) {

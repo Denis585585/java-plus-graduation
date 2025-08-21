@@ -33,7 +33,7 @@ public class RequestController {
     }
 
     @PatchMapping("/{userId}/requests/{requestId}/cancel")
-    ParticipationRequestDto cancelRequest(@PathVariable Long userId,
+    public ParticipationRequestDto cancelRequest(@PathVariable Long userId,
                                           @PathVariable Long requestId) {
         log.info("Отменить запрос по userId --> {}, requestId --> {}", userId, requestId);
         return requestService.cancelRequest(userId, requestId);
