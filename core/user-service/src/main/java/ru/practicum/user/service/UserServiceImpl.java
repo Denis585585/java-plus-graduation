@@ -8,6 +8,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.dto.user.UserDto;
+import ru.practicum.dto.user.UserRequestDto;
 import ru.practicum.dto.user.UserShortDto;
 import ru.practicum.exceptions.NotFoundException;
 import ru.practicum.user.mapper.UserMapper;
@@ -88,9 +89,9 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public UserDto registerUser(UserDto userDto) {
-        log.info("registerUser params: userDto = {}", userDto);
-        User user = userRepository.save(userMapper.toUser(userDto));
+    public UserDto registerUser(UserRequestDto userRequestDto) {
+        log.info("registerUser params: userRequestDto = {}", userRequestDto);
+        User user = userRepository.save(userMapper.toEntity(userRequestDto));
         checkEmail(user);
         log.info("registerUser result user = {}", user);
         return userMapper.toUserDto(user);
