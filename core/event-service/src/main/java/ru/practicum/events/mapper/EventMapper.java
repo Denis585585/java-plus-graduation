@@ -17,9 +17,7 @@ import ru.practicum.events.model.Location;
 import java.time.LocalDateTime;
 import java.util.List;
 
-@Mapper(componentModel = "spring",
-        uses = {CategoryMapper.class, LocationMapper.class},
-        imports = {LocalDateTime.class, EventState.class})
+@Mapper(componentModel = "spring", uses = {CategoryMapper.class, LocationMapper.class}, imports = {LocalDateTime.class, EventState.class})
 public interface EventMapper {
 
     @Mapping(target = "id", ignore = true)
@@ -34,26 +32,20 @@ public interface EventMapper {
     Event toEvent(NewEventDto newEventDto, Category category, Long initiatorId);
 
     @Mapping(target = "id", source = "event.id")
-    @Mapping(target = "confirmedRequests", source = "event.confirmedRequests",
-            defaultExpression = "java(0L)")
-    @Mapping(target = "views", source = "event.views",
-            defaultExpression = "java(0L)")
+    @Mapping(target = "confirmedRequests", source = "event.confirmedRequests", defaultExpression = "java(0L)")
+    @Mapping(target = "views", source = "event.views", defaultExpression = "java(0L)")
     @Mapping(target = "initiator", ignore = true)
     EventFullDto toEventFullDto(Event event);
 
     @Mapping(target = "id", source = "event.id")
-    @Mapping(target = "confirmedRequests", source = "event.confirmedRequests",
-            defaultExpression = "java(0L)")
-    @Mapping(target = "views", source = "event.views",
-            defaultExpression = "java(0L)")
+    @Mapping(target = "confirmedRequests", source = "event.confirmedRequests", defaultExpression = "java(0L)")
+    @Mapping(target = "views", source = "event.views", defaultExpression = "java(0L)")
     @Mapping(target = "initiator", source = "userShortDto")
     EventFullDto toEventFullDto(Event event, UserShortDto userShortDto);
 
     @Mapping(target = "id", source = "event.id")
-    @Mapping(target = "confirmedRequests", source = "event.confirmedRequests",
-            defaultExpression = "java(0L)")
-    @Mapping(target = "views", source = "event.views",
-            defaultExpression = "java(0L)")
+    @Mapping(target = "confirmedRequests", source = "event.confirmedRequests", defaultExpression = "java(0L)")
+    @Mapping(target = "views", source = "event.views", defaultExpression = "java(0L)")
     @Mapping(target = "initiator", source = "initiator")
     EventShortDto toEventShortDto(Event event, UserShortDto initiator);
 

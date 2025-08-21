@@ -15,9 +15,9 @@ public class ParticipationRequestDto {
     @NotNull(message = "Event ID cannot be null")
     private Long id;
     @NotNull
-    private Long event;
+    private Long eventId;
     @NotNull
-    private Long requester;
+    private Long requesterId;
     private RequestStatus status;
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd' 'HH:mm:ss")
     private LocalDateTime created;
