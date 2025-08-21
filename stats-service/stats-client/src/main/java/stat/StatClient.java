@@ -14,7 +14,7 @@ import org.springframework.retry.support.RetryTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.web.util.DefaultUriBuilderFactory;
 import org.springframework.web.util.UriComponentsBuilder;
-import ru.practicum.dto.EndpointHitDto;
+import ru.practicum.request.dto.EndpointHitDto;
 
 import java.net.URI;
 

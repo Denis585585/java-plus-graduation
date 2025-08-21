@@ -1,7 +1,6 @@
 package ru.practicum.dto.events;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PositiveOrZero;
@@ -21,8 +20,7 @@ public class NewEventDto {
     private String annotation;
 
     @NotNull
-    @JsonProperty("category")
-    private Long categoryId;
+    private Long category;
 
     @NotBlank
     @Size(min = 20, max = 7000)

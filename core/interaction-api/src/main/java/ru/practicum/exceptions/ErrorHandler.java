@@ -13,7 +13,6 @@ import org.springframework.web.method.annotation.HandlerMethodValidationExceptio
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.security.InvalidParameterException;
 
 @RestControllerAdvice
 @Slf4j
@@ -29,53 +28,9 @@ public class ErrorHandler {
                 getStackTrace(e));
     }
 
-    @ExceptionHandler(MethodArgumentNotValidException.class)
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ApiError handleMethodArgumentNotValid(final MethodArgumentNotValidException e) {
-        log.error("{} {}", HttpStatus.BAD_REQUEST, e.getMessage(), e);
-        return new ApiError(
-                HttpStatus.BAD_REQUEST,
-                "Incorrectly made request.",
-                e.getMessage(),
-                getStackTrace(e));
-    }
-
-    @ExceptionHandler(InvalidDataException.class)
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ApiError handleInvalidDataException(final InvalidDataException e) {
-        log.error("{} {}", HttpStatus.BAD_REQUEST, e.getMessage(), e);
-        return new ApiError(
-                HttpStatus.BAD_REQUEST,
-                "Incorrectly made request.",
-                e.getMessage(),
-                getStackTrace(e));
-    }
-
-    @ExceptionHandler(EventDateValidationException.class)
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ApiError handleEventDateValidationException(final EventDateValidationException e) {
-        log.error("{} {}", HttpStatus.BAD_REQUEST, e.getMessage(), e);
-        return new ApiError(
-                HttpStatus.BAD_REQUEST,
-                "Incorrectly made request.",
-                e.getMessage(),
-                getStackTrace(e));
-    }
-
-    @ExceptionHandler(MissingServletRequestParameterException.class)
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ApiError handleMissingServletRequestParameterException(final MissingServletRequestParameterException e) {
-        log.error("{} {}", HttpStatus.BAD_REQUEST, e.getMessage(), e);
-        return new ApiError(
-                HttpStatus.BAD_REQUEST,
-                "Incorrectly made request.",
-                e.getMessage(),
-                getStackTrace(e));
-    }
-
-    @ExceptionHandler(DataIntegrityViolationException.class)
+    @ExceptionHandler({ConflictDataException.class, DataIntegrityViolationException.class})
     @ResponseStatus(HttpStatus.CONFLICT)
-    public ApiError handleDataIntegrityViolationException(final DataIntegrityViolationException e) {
+    public ApiError handleDataIntegrityViolationException(final Exception e) {
         log.error("{} {}", HttpStatus.CONFLICT, e.getMessage(), e);
         return new ApiError(
                 HttpStatus.CONFLICT,
@@ -84,53 +39,11 @@ public class ErrorHandler {
                 getStackTrace(e));
     }
 
-    @ExceptionHandler(IllegalStateException.class)
-    @ResponseStatus(HttpStatus.CONFLICT)
-    public ApiError handleIllegalStateException(final IllegalStateException e) {
-        log.error("{} {}", HttpStatus.CONFLICT, e.getMessage(), e);
-        return new ApiError(
-                HttpStatus.CONFLICT,
-                "Integrity constraint has been violated.",
-                e.getMessage(),
-                getStackTrace(e));
-    }
-
-    @ExceptionHandler(ConflictDataException.class)
-    @ResponseStatus(HttpStatus.CONFLICT)
-    public ApiError handleConflictDataException(final ConflictDataException e) {
-        log.error("{} {}", HttpStatus.CONFLICT, e.getMessage(), e);
-        return new ApiError(
-                HttpStatus.CONFLICT,
-                "Integrity constraint has been violated.",
-                e.getMessage(),
-                getStackTrace(e));
-    }
-
-    @ExceptionHandler(InvalidParameterException.class)
-    @ResponseStatus(HttpStatus.CONFLICT)
-    public ApiError handleInvalidParameterException(final InvalidParameterException e) {
-        log.error("{} {}", HttpStatus.CONFLICT, e.getMessage(), e);
-        return new ApiError(
-                HttpStatus.CONFLICT,
-                "Integrity constraint has been violated.",
-                e.getMessage(),
-                getStackTrace(e));
-    }
-
-    @ExceptionHandler(HttpMessageNotReadableException.class)
+    @ExceptionHandler({MissingServletRequestParameterException.class, MethodArgumentNotValidException.class,
+            InvalidDataException.class, HttpMessageNotReadableException.class, HandlerMethodValidationException.class,
+    EventDateValidationException.class})
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ApiError handleHttpMessageNotReadableException(final HttpMessageNotReadableException e) {
-        log.error("{} {}", HttpStatus.BAD_REQUEST, e.getMessage(), e);
-        return new ApiError(
-                HttpStatus.BAD_REQUEST,
-                "Incorrectly made request.",
-                e.getMessage(),
-                getStackTrace(e));
-    }
-
-    @ExceptionHandler(HandlerMethodValidationException.class)
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ApiError handleHandlerMethodValidationException(final HandlerMethodValidationException e) {
+    public ApiError handleMethodArgumentNotValidException(final Exception e) {
         log.error("{} {}", HttpStatus.BAD_REQUEST, e.getMessage(), e);
         return new ApiError(
                 HttpStatus.BAD_REQUEST,
@@ -140,12 +53,12 @@ public class ErrorHandler {
     }
 
     @ExceptionHandler
-    @ResponseStatus(HttpStatus.CONFLICT)
-    public ApiError handleException(final InternalServerException e) {
-        log.error("500 {}", e.getMessage(), e);
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    public ApiError handleInternalServerException(final InternalServerException e) {
+        log.error("{} {}", HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage(), e);
         return new ApiError(
                 HttpStatus.INTERNAL_SERVER_ERROR,
-                "Error occurred",
+                "Internal server error.",
                 e.getMessage(),
                 getStackTrace(e));
     }

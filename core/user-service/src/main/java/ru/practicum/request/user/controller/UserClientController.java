@@ -1,0 +1,28 @@
+package ru.practicum.request.user.controller;
+
+import lombok.RequiredArgsConstructor;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import ru.practicum.request.client.UserClient;
+import ru.practicum.request.dto.user.UserShortDto;
+import ru.practicum.request.user.service.UserService;
+
+import java.util.List;
+
+@RestController
+@RequestMapping(path = "/internal/api/users")
+@RequiredArgsConstructor
+public class UserClientController implements UserClient {
+    private final UserService userService;
+
+    @Override
+    public UserShortDto getById(Long userId) {
+        return userService.getById(userId);
+    }
+
+    @Override
+    public List<UserShortDto> getByIds(List<Long> ids) {
+        return userService.getUsers(ids);
+    }
+}

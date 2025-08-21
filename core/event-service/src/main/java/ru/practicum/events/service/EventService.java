@@ -1,6 +1,5 @@
 package ru.practicum.events.service;
 
-import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.dto.events.*;
 import ru.practicum.dto.request.ParticipationRequestDto;
@@ -9,8 +8,8 @@ import ru.practicum.events.model.Event;
 
 import java.util.List;
 
-@Transactional(readOnly = true)
 public interface EventService {
+
     List<EventShortDto> getEventsByUser(Long userId, Integer from, Integer size);
 
     @Transactional
@@ -56,6 +55,4 @@ public interface EventService {
             Long userId,
             Long eventId,
             EventRequestStatusUpdateRequestDto requestStatusUpdateRequest);
-
-    void saveHit(HttpServletRequest request);
 }
