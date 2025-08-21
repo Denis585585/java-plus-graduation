@@ -72,9 +72,9 @@ public class EventServiceImpl implements EventService {
         }
 
         Page<Event> events = eventRepository.findAdminEvents(
-                eventParams.getUsersIds(),
+                eventParams.getUsers(),
                 eventParams.getStates(),
-                eventParams.getCategoriesIds(),
+                eventParams.getCategories(),
                 eventParams.getRangeStart(),
                 eventParams.getRangeEnd(),
                 page
@@ -244,7 +244,7 @@ public class EventServiceImpl implements EventService {
 
         Page<Event> events = eventRepository.findPublicEvents(
                 eventPublicParam.getText(),
-                eventPublicParam.getCategory(),
+                eventPublicParam.getCategories(),
                 eventPublicParam.getPaid(),
                 eventPublicParam.getRangeStart(),
                 eventPublicParam.getRangeEnd(),
@@ -427,7 +427,7 @@ public class EventServiceImpl implements EventService {
                 RequestStatus.CONFIRMED);
         log.info("confirmedRequests: {}", confirmedRequests);
 
-        List<ParticipationRequestDto> requestToChangeStatus = requestClient.getByIds(requestStatusUpdateRequest.getRequestIds());
+        List<ParticipationRequestDto> requestToChangeStatus = requestClient.getByIds(requestStatusUpdateRequest.getRequests());
         List<Long> idsToChangeStatus = requestToChangeStatus.stream()
                 .map(ParticipationRequestDto::getId)
                 .toList();
@@ -438,12 +438,12 @@ public class EventServiceImpl implements EventService {
         }
 
         log.info("Заявки:  Лимит: {}, подтвержденных заявок {}, запрошенных заявок {}, разница между ними: {}", participantsLimit,
-                confirmedRequests.size(), requestStatusUpdateRequest.getRequestIds().size(), (participantsLimit
-                        - confirmedRequests.size() - requestStatusUpdateRequest.getRequestIds().size()));
+                confirmedRequests.size(), requestStatusUpdateRequest.getRequests().size(), (participantsLimit
+                        - confirmedRequests.size() - requestStatusUpdateRequest.getRequests().size()));
 
         if (requestStatusUpdateRequest.getStatus().equals(RequestStatus.CONFIRMED)) {
             log.info("меняем статус заявок для статуса: {}", RequestStatus.CONFIRMED);
-            if ((participantsLimit - (confirmedRequests.size()) - requestStatusUpdateRequest.getRequestIds().size()) >= 0) {
+            if ((participantsLimit - (confirmedRequests.size()) - requestStatusUpdateRequest.getRequests().size()) >= 0) {
                 List<ParticipationRequestDto> requestUpdated = requestClient.updateStatus(
                         RequestStatus.CONFIRMED, idsToChangeStatus);
 
