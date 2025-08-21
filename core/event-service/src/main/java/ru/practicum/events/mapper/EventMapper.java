@@ -1,106 +1,69 @@
 package ru.practicum.events.mapper;
 
-import lombok.RequiredArgsConstructor;
+import org.mapstruct.AfterMapping;
+import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
-import org.springframework.stereotype.Component;
+import org.mapstruct.MappingTarget;
 import ru.practicum.categories.mapper.CategoryMapper;
 import ru.practicum.categories.model.Category;
 import ru.practicum.dto.events.EventFullDto;
 import ru.practicum.dto.events.EventShortDto;
+import ru.practicum.dto.events.EventState;
 import ru.practicum.dto.events.NewEventDto;
 import ru.practicum.dto.user.UserShortDto;
 import ru.practicum.events.model.Event;
-import ru.practicum.dto.events.EventState;
+import ru.practicum.events.model.Location;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
-@Component
-@RequiredArgsConstructor
-public class EventMapper {
-    private final CategoryMapper categoryMapper;
-    private final LocationMapper locationMapper;
+@Mapper(componentModel = "spring",
+        uses = {CategoryMapper.class, LocationMapper.class},
+        imports = {LocalDateTime.class, EventState.class})
+public interface EventMapper {
 
+    @Mapping(target = "initiator", ignore = true)
+    @Mapping(target = "confirmedRequests", source = "event.confirmedRequests")
+    @Mapping(target = "views", source = "event.views", ignore = true)
+    EventFullDto toEventFullDto(Event event);
+
+    @Mapping(target = "confirmedRequests", source = "event.confirmedRequests")
+    @Mapping(target = "views", source = "event.views", ignore = true)
+    @Mapping(target = "initiator", source = "userShortDto")
+    @Mapping(target = "id", source = "event.id")
+    EventFullDto toEventFullDto(Event event, UserShortDto userShortDto);
+
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "confirmedRequests", ignore = true)
     @Mapping(target = "views", ignore = true)
-    public EventFullDto toEventFullDto(Event event) {
-        return EventFullDto.builder()
-                .id(event.getId())
-                .annotation(event.getAnnotation())
-                .category(categoryMapper.toCategoryDto(event.getCategory()))
-                .eventDate(event.getEventDate())
-                .paid(event.getPaid())
-                .title(event.getTitle())
-                .views(event.getViews())
-                .createdOn(event.getCreatedOn())
-                .description(event.getDescription())
-                .location(locationMapper.toLocationDto(event.getLocation()))
-                .participantLimit(event.getParticipantLimit())
-                .publishedOn(event.getPublishedOn())
-                .requestModeration(event.getRequestModeration())
-                .state(event.getState())
-                .confirmedRequests(event.getConfirmedRequests())
-                .build();
+    @Mapping(target = "createdOn", expression = "java(LocalDateTime.now())")
+    @Mapping(target = "publishedOn", ignore = true)
+    @Mapping(target = "state", expression = "java(EventState.PENDING)")
+    @Mapping(target = "initiatorId", source = "initiatorId")
+    @Mapping(target = "category", source = "category")
+    @Mapping(target = "location", source = "newEventDto.location")
+    Event toEvent(NewEventDto newEventDto, Category category, Long initiatorId);
+
+    @Mapping(target = "confirmedRequests", source = "event.confirmedRequests")
+    @Mapping(target = "views", source = "event.views")
+    @Mapping(target = "initiator", source = "initiator")
+    @Mapping(target = "id", source = "event.id")
+    EventShortDto toEventShortDto(Event event, UserShortDto initiator);
+
+    List<EventFullDto> toEventFullDto(List<Event> events);
+
+    @AfterMapping
+    default void setLocation(@MappingTarget Event event, NewEventDto newEventDto) {
+        if (newEventDto.getLocation() != null) {
+            Location location = new Location();
+            location.setLat(newEventDto.getLocation().getLat());
+            location.setLon(newEventDto.getLocation().getLon());
+            event.setLocation(location);
+        }
     }
 
-    @Mapping(target = "views", ignore = true)
-    public EventFullDto toEventFullDto(Event event, UserShortDto userShortDto) {
-        return EventFullDto.builder()
-                .id(event.getId())
-                .annotation(event.getAnnotation())
-                .category(categoryMapper.toCategoryDto(event.getCategory()))
-                .eventDate(event.getEventDate())
-                .paid(event.getPaid())
-                .title(event.getTitle())
-                .views(event.getViews())
-                .createdOn(event.getCreatedOn())
-                .description(event.getDescription())
-                .location(locationMapper.toLocationDto(event.getLocation()))
-                .participantLimit(event.getParticipantLimit())
-                .publishedOn(event.getPublishedOn())
-                .requestModeration(event.getRequestModeration())
-                .state(event.getState())
-                .initiator(userShortDto)
-                .confirmedRequests(event.getConfirmedRequests())
-                .build();
-    }
-
-    @Mapping(target = "views", ignore = true)
-    public Event toEvent(NewEventDto newEventDto, Category category, Long initiatorId) {
-        return new Event(
-                0L,
-                newEventDto.getAnnotation(),
-                category,
-                0L,
-                LocalDateTime.now(),
-                newEventDto.getDescription(),
-                newEventDto.getEventDate(),
-                initiatorId,
-                locationMapper.toLocation(newEventDto.getLocation()),
-                newEventDto.getPaid(),
-                newEventDto.getParticipantLimit(),
-                null,
-                newEventDto.getRequestModeration(),
-                EventState.PENDING,
-                newEventDto.getTitle(),
-                0L
-        );
-    }
-
-    public EventShortDto toEventShortDto(Event event, UserShortDto initiator) {
-        return new EventShortDto(
-                event.getId(),
-                event.getAnnotation(),
-                categoryMapper.toCategoryDto(event.getCategory()),
-                event.getConfirmedRequests(),
-                event.getEventDate(),
-                initiator,
-                event.getPaid(),
-                event.getTitle(),
-                event.getViews()
-        );
-    }
-
-    public List<EventFullDto> toEventFullDto(List<Event> adminEvents) {
-        return adminEvents.stream().map(this::toEventFullDto).toList();
+    @AfterMapping
+    default void setCategory(@MappingTarget Event event, Category category) {
+        event.setCategory(category);
     }
 }
