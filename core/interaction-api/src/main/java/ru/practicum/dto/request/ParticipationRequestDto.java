@@ -12,6 +12,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 public class ParticipationRequestDto {
+    @NotNull(message = "Event ID cannot be null")
     private Long id;
     @NotNull
     private Long event;
