@@ -10,6 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.dto.user.UserDto;
 import ru.practicum.dto.user.UserRequestDto;
 import ru.practicum.dto.user.UserShortDto;
+import ru.practicum.exceptions.DuplicateEmailException;
 import ru.practicum.exceptions.NotFoundException;
 import ru.practicum.user.mapper.UserMapper;
 import ru.practicum.user.model.User;
@@ -91,14 +92,15 @@ public class UserServiceImpl implements UserService {
     @Transactional
     public UserDto registerUser(UserRequestDto userRequestDto) {
         log.info("registerUser params: userRequestDto = {}", userRequestDto);
+        checkEmail(userRequestDto);
         User user = userRepository.save(userMapper.toEntity(userRequestDto));
         log.info("registerUser result user = {}", user);
         return userMapper.toUserDto(user);
     }
 
-    private void checkEmail(User user) {
-        if (userRepository.existsByEmail(user.getEmail())) {
-            throw new DataIntegrityViolationException(("User with email " + user.getEmail() + " already exists"));
+    private void checkEmail(UserRequestDto userRequestDto) {
+        if (userRepository.existsByEmail(userRequestDto.getEmail())) {
+            throw new DuplicateEmailException("User with email " + userRequestDto.getEmail() + " already exists");
         }
     }
 }

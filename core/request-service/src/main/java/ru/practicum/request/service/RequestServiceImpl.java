@@ -9,8 +9,7 @@ import ru.practicum.client.UserClient;
 import ru.practicum.dto.events.EventFullDto;
 import ru.practicum.dto.events.EventState;
 import ru.practicum.dto.request.*;
-import ru.practicum.exceptions.InvalidDataException;
-import ru.practicum.exceptions.NotFoundException;
+import ru.practicum.exceptions.*;
 import ru.practicum.request.mapper.RequestMapper;
 import ru.practicum.request.model.Request;
 import ru.practicum.request.repository.RequestRepository;
@@ -42,8 +41,9 @@ public class RequestServiceImpl implements RequestService {
     @Transactional
     public ParticipationRequestDto createRequest(Long userId, Long eventId) {
         EventFullDto event = eventClient.getById(eventId);
+        userClient.getById(userId);
 
-        checkRequest(userId, eventId);
+        checkRequest(userId, eventId, event);
 
         Request request = Request.builder()
                 .requesterId(userId)
@@ -144,20 +144,19 @@ public class RequestServiceImpl implements RequestService {
         return result;
     }
 
-    private void checkRequest(Long requesterId, Long eventId) {
+    private void checkRequest(Long requesterId, Long eventId, EventFullDto event) {
         if (requestRepository.existsByRequesterIdAndEventId(requesterId, eventId))
-            throw new InvalidParameterException("Нельзя создать повторный запрос");
+            throw new DuplicateRequestException("Нельзя создать повторный запрос");
 
-        EventFullDto event = eventClient.getById(eventId);
         if (event.getInitiator().getId().equals(requesterId))
-            throw new InvalidParameterException("Инициатор события не может добавить запрос на участие в своём событии");
+            throw new InitiatorParticipationException("Инициатор события не может добавить запрос на участие в своём событии");
 
-        if (!event.getState().equals(EventState.PUBLISHED))
-            throw new InvalidParameterException("Нельзя участвовать в неопубликованных событиях");
+        if (event.getState() != EventState.PUBLISHED)
+            throw new EventNotPublishedException("Нельзя участвовать в неопубликованных событиях");
 
         List<Request> requests = requestRepository.findAllByEventId(eventId);
         if (!event.getRequestModeration() && requests.size() >= event.getParticipantLimit())
-            throw new InvalidParameterException("У события достигнут лимит запросов на участие");
+            throw new ParticipantLimitReachedException("У события достигнут лимит запросов на участие");
     }
 
     private Request getRequestById(Long requestId) {

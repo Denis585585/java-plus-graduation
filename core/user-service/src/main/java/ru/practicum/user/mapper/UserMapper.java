@@ -11,7 +11,6 @@ import ru.practicum.user.model.User;
 
 @Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
 public interface UserMapper {
-    @Mapping(target = "id", ignore = true)
     User toEntity(UserRequestDto dto);
 
     UserDto toUserDto(User user);

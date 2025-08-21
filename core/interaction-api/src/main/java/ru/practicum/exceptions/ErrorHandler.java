@@ -73,6 +73,18 @@ public class ErrorHandler {
                 getStackTrace(e));
     }
 
+    @ExceptionHandler(ValidationException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ApiError handleValidationException(ValidationException e) {
+        log.error("Validation error: {}", e.getMessage(), e);
+        return new ApiError(
+                HttpStatus.BAD_REQUEST,
+                "Incorrectly made request",
+                e.getMessage(),
+                getStackTrace(e)
+        );
+    }
+
     @ExceptionHandler(DataIntegrityViolationException.class)
     @ResponseStatus(HttpStatus.CONFLICT)
     public ApiError handleDataIntegrityViolationException(final DataIntegrityViolationException e) {
@@ -104,6 +116,66 @@ public class ErrorHandler {
                 "Integrity constraint has been violated.",
                 e.getMessage(),
                 getStackTrace(e));
+    }
+
+    @ExceptionHandler(DuplicateEmailException.class)
+    @ResponseStatus(HttpStatus.CONFLICT)
+    public ApiError handleDuplicateEmailException(DuplicateEmailException e) {
+        log.error("Duplicate email: {}", e.getMessage(), e);
+        return new ApiError(
+                HttpStatus.CONFLICT,
+                "Duplicate email",
+                e.getMessage(),
+                getStackTrace(e)
+        );
+    }
+
+    @ExceptionHandler(InitiatorParticipationException.class)
+    @ResponseStatus(HttpStatus.CONFLICT)
+    public ApiError handleInitiatorParticipationException(InitiatorParticipationException e) {
+        log.error("Initiator participation: {}", e.getMessage(), e);
+        return new ApiError(
+                HttpStatus.CONFLICT,
+                "Initiator cannot participate",
+                e.getMessage(),
+                getStackTrace(e)
+        );
+    }
+
+    @ExceptionHandler(DuplicateRequestException.class)
+    @ResponseStatus(HttpStatus.CONFLICT)
+    public ApiError handleDuplicateRequestException(DuplicateRequestException e) {
+        log.error("Duplicate request: {}", e.getMessage(), e);
+        return new ApiError(
+                HttpStatus.CONFLICT,
+                "Duplicate participation request",
+                e.getMessage(),
+                getStackTrace(e)
+        );
+    }
+
+    @ExceptionHandler(EventNotPublishedException.class)
+    @ResponseStatus(HttpStatus.CONFLICT)
+    public ApiError handleEventNotPublishedException(EventNotPublishedException e) {
+        log.error("Event not published: {}", e.getMessage(), e);
+        return new ApiError(
+                HttpStatus.CONFLICT,
+                "Event not published",
+                e.getMessage(),
+                getStackTrace(e)
+        );
+    }
+
+    @ExceptionHandler(ParticipantLimitReachedException.class)
+    @ResponseStatus(HttpStatus.CONFLICT)
+    public ApiError handleParticipantLimitReachedException(ParticipantLimitReachedException e) {
+        log.error("Participant limit: {}", e.getMessage(), e);
+        return new ApiError(
+                HttpStatus.CONFLICT,
+                "Participant limit reached",
+                e.getMessage(),
+                getStackTrace(e)
+        );
     }
 
     @ExceptionHandler(InvalidParameterException.class)
