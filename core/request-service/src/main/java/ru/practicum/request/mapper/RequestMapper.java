@@ -13,8 +13,8 @@ import java.util.List;
 
 @Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
 public interface RequestMapper {
-    @Mapping(source = "eventId", target = "event.id")
-    @Mapping(source = "requesterId", target = "requester.id")
+    @Mapping(source = "eventId", target = "event")
+    @Mapping(source = "requesterId", target = "requester")
     @Mapping(source = "created", target = "created", dateFormat = "yyyy-MM-dd HH:mm:ss")
     ParticipationRequestDto toParticipationRequestDto(Request request);
 
