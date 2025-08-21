@@ -140,6 +140,17 @@ public class ErrorHandler {
     }
 
     @ExceptionHandler
+    @ResponseStatus(HttpStatus.CONFLICT)
+    public ApiError handleException(final InternalServerException e) {
+        log.error("500 {}", e.getMessage(), e);
+        return new ApiError(
+                HttpStatus.INTERNAL_SERVER_ERROR,
+                "Error occurred",
+                e.getMessage(),
+                getStackTrace(e));
+    }
+
+    @ExceptionHandler
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public ApiError handleException(final Exception e) {
         log.error("500 {}", e.getMessage(), e);

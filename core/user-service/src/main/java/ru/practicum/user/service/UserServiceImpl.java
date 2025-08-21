@@ -91,14 +91,15 @@ public class UserServiceImpl implements UserService {
     @Transactional
     public UserDto registerUser(UserRequestDto userRequestDto) {
         log.info("registerUser params: userRequestDto = {}", userRequestDto);
+        checkEmail(userRequestDto.getEmail());
         User user = userRepository.save(userMapper.toEntity(userRequestDto));
         log.info("registerUser result user = {}", user);
         return userMapper.toUserDto(user);
     }
 
-    private void checkEmail(User user) {
-        if (userRepository.existsByEmail(user.getEmail())) {
-            throw new DataIntegrityViolationException(("User with email " + user.getEmail() + " already exists"));
+    private void checkEmail(String email) {
+        if (userRepository.existsByEmail(email)) {
+            throw new DataIntegrityViolationException(("User with email " + email + " already exists"));
         }
     }
 }
