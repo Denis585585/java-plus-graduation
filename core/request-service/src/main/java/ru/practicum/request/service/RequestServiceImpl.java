@@ -44,9 +44,9 @@ public class RequestServiceImpl implements RequestService {
     @Transactional
     public ParticipationRequestDto createRequest(Long userId, Long eventId) {
         EventFullDto event = eventClient.getById(eventId);
-        userClient.getById(userId);
+        UserShortDto user = userClient.getById(userId);
 
-        checkRequest(userId, event);
+        checkRequest(user, event);
 
         RequestStatus status = (!event.getRequestModeration() || event.getParticipantLimit() == 0)
                 ? RequestStatus.CONFIRMED
@@ -149,17 +149,16 @@ public class RequestServiceImpl implements RequestService {
         return result;
     }
 
-    private void checkRequest(Long requesterId, EventFullDto event) {
-        if (requestRepository.existsByRequesterIdAndEventId(requesterId, event.getId())) {
+    private void checkRequest(UserShortDto requester, EventFullDto event) {
+        if (requestRepository.existsByRequesterIdAndEventId(requester.getId(), event.getId())) {
             throw new ConflictDataException("Нельзя создать повторный запрос");
         }
 
-        UserShortDto initiator = event.getInitiator();
-        if (initiator != null && initiator.getId().equals(requesterId)) {
+        if (event.getInitiator().getId().equals(requester.getId())) {
             throw new ConflictDataException("Инициатор события не может добавить запрос на участие в своём событии");
         }
 
-        if (event.getState() != EventState.PUBLISHED) {
+        if (!event.getState().equals(EventState.PUBLISHED)) {
             throw new ConflictDataException("Нельзя участвовать в неопубликованных событиях");
         }
 

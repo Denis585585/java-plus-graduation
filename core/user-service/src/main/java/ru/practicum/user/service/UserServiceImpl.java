@@ -2,12 +2,12 @@ package ru.practicum.user.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.dto.user.UserDto;
-import ru.practicum.dto.user.UserRequestDto;
 import ru.practicum.dto.user.UserShortDto;
 import ru.practicum.exceptions.NotFoundException;
 import ru.practicum.user.mapper.UserMapper;
@@ -88,10 +88,17 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public UserDto registerUser(UserRequestDto userRequestDto) {
-        log.info("registerUser params: userRequestDto = {}", userRequestDto);
-        User user = userRepository.save(userMapper.toEntity(userRequestDto));
+    public UserDto registerUser(UserDto userDto) {
+        log.info("registerUser params: userDto = {}", userDto);
+        User user = userRepository.save(userMapper.toUser(userDto));
+        checkEmail(user);
         log.info("registerUser result user = {}", user);
         return userMapper.toUserDto(user);
+    }
+
+    private void checkEmail(User user) {
+        if (userRepository.existsByEmail(user.getEmail())) {
+            throw new DataIntegrityViolationException(("User with email " + user.getEmail() + " already exists"));
+        }
     }
 }

@@ -2,7 +2,6 @@ package ru.practicum.user.service;
 
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.dto.user.UserDto;
-import ru.practicum.dto.user.UserRequestDto;
 import ru.practicum.dto.user.UserShortDto;
 import ru.practicum.user.param.UserParams;
 
@@ -25,5 +24,5 @@ public interface UserService {
 
     UserShortDto getById(Long userId);
 
-    UserDto registerUser(UserRequestDto userRequestDto);
+    UserDto registerUser(UserDto userDto);
 }

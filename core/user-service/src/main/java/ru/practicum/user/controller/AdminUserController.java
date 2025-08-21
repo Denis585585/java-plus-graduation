@@ -6,7 +6,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.dto.user.UserDto;
-import ru.practicum.dto.user.UserRequestDto;
 import ru.practicum.user.service.UserService;
 
 import java.util.List;
@@ -26,8 +25,8 @@ public class AdminUserController {
     }
 
     @PostMapping
-    public ResponseEntity<UserDto> registerUser(@RequestBody @Valid UserRequestDto userRequestDto) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(userService.registerUser(userRequestDto));
+    public ResponseEntity<UserDto> registerUser(@RequestBody @Valid UserDto userDto) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(userService.registerUser(userDto));
     }
 
     @DeleteMapping("/{userId}")
