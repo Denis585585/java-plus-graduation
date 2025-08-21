@@ -72,9 +72,9 @@ public class EventServiceImpl implements EventService {
         }
 
         Page<Event> events = eventRepository.findAdminEvents(
-                eventParams.getUsers(),
+                eventParams.getUsersIds(),
                 eventParams.getStates(),
-                eventParams.getCategories(),
+                eventParams.getCategoriesIds(),
                 eventParams.getRangeStart(),
                 eventParams.getRangeEnd(),
                 page
@@ -108,8 +108,8 @@ public class EventServiceImpl implements EventService {
             }
         }
         Optional.ofNullable(updateEventAdminRequest.getAnnotation()).ifPresent(event::setAnnotation);
-        if (updateEventAdminRequest.getCategory() != null) {
-            Category category = getCategory(updateEventAdminRequest.getCategory());
+        if (updateEventAdminRequest.getCategoryId() != null) {
+            Category category = getCategory(updateEventAdminRequest.getCategoryId());
             event.setCategory(category);
         }
         Optional.ofNullable(updateEventAdminRequest.getDescription()).ifPresent(event::setDescription);
@@ -161,7 +161,7 @@ public class EventServiceImpl implements EventService {
                 !newEventDto.getEventDate().isAfter(LocalDateTime.now().plusHours(2))) {
             throw new EventDateValidationException("Event date should be in 2+ hours after now");
         }
-        Category category = getCategory(newEventDto.getCategory());
+        Category category = getCategory(newEventDto.getCategoryId());
 
         Event event = eventMapper.toEvent(newEventDto, category, userId);
         event.setLocation(locationRepository.save(locationMapper.toLocation(newEventDto.getLocation())));
@@ -199,8 +199,8 @@ public class EventServiceImpl implements EventService {
             throw new EventDateValidationException("Event date should be in 2+ hours after now");
         }
         Optional.ofNullable(updateEventUserDto.getAnnotation()).ifPresent(event::setAnnotation);
-        if (updateEventUserDto.getCategory() != null) {
-            Category category = getCategory(updateEventUserDto.getCategory());
+        if (updateEventUserDto.getCategoryId() != null) {
+            Category category = getCategory(updateEventUserDto.getCategoryId());
             event.setCategory(category);
         }
         Optional.ofNullable(updateEventUserDto.getDescription()).ifPresent(event::setDescription);
@@ -474,6 +474,6 @@ public class EventServiceImpl implements EventService {
                     RequestStatus.REJECTED, idsToChangeStatus);
             return new EventRequestStatusUpdateResultDto(null, requestUpdated);
         }
-        return null;
+        return new EventRequestStatusUpdateResultDto(null, null);
     }
 }

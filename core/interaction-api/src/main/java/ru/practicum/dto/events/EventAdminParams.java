@@ -11,9 +11,9 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 public class EventAdminParams {
-    private List<Long> users;
+    private List<Long> usersIds;
     private List<String> states;
-    private List<Long> categories;
+    private List<Long> categoriesIds;
     private LocalDateTime rangeStart;
     private LocalDateTime rangeEnd;
     private int from;
