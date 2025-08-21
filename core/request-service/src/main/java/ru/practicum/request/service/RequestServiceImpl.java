@@ -10,7 +10,6 @@ import ru.practicum.dto.events.EventFullDto;
 import ru.practicum.dto.events.EventState;
 import ru.practicum.dto.request.*;
 import ru.practicum.dto.user.UserShortDto;
-import ru.practicum.exceptions.ConflictDataException;
 import ru.practicum.exceptions.InvalidDataException;
 import ru.practicum.exceptions.NotFoundException;
 import ru.practicum.request.mapper.RequestMapper;
@@ -151,16 +150,16 @@ public class RequestServiceImpl implements RequestService {
 
     private void checkRequest(Long requesterId, EventFullDto event) {
         if (requestRepository.existsByRequesterIdAndEventId(requesterId, event.getId())) {
-            throw new ConflictDataException("Нельзя создать повторный запрос");
+            throw new InvalidParameterException("Нельзя создать повторный запрос");
         }
 
         UserShortDto initiator = event.getInitiator();
         if (initiator != null && initiator.getId().equals(requesterId)) {
-            throw new ConflictDataException("Инициатор события не может добавить запрос на участие в своём событии");
+            throw new InvalidParameterException("Инициатор события не может добавить запрос на участие в своём событии");
         }
 
         if (event.getState() != EventState.PUBLISHED) {
-            throw new ConflictDataException("Нельзя участвовать в неопубликованных событиях");
+            throw new InvalidParameterException("Нельзя участвовать в неопубликованных событиях");
         }
 
         long confirmedCount = requestRepository.findAllByEventId(event.getId()).stream()
@@ -168,7 +167,7 @@ public class RequestServiceImpl implements RequestService {
                 .count();
 
         if (event.getParticipantLimit() != 0 && confirmedCount >= event.getParticipantLimit()) {
-            throw new ConflictDataException("У события достигнут лимит запросов на участие");
+            throw new InvalidParameterException("У события достигнут лимит запросов на участие");
         }
     }
 

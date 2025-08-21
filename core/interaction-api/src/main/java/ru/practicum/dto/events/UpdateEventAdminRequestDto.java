@@ -22,7 +22,7 @@ public class UpdateEventAdminRequestDto {
     @NullOrNotBlank
     @Size(min = 20, max = 2000)
     private String annotation;
-    private Long category;
+    private Long categoryId;
     @NullOrNotBlank
     @Size(min = 20, max = 7000)
     private String description;

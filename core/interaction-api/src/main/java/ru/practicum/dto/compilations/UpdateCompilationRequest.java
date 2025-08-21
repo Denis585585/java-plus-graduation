@@ -15,7 +15,7 @@ import java.util.List;
 @Builder
 public class UpdateCompilationRequest {
 
-    private List<@NotNull @Positive Long> events;
+    private List<@NotNull @Positive Long> eventsIds;
 
     private Boolean pinned;
 
