@@ -75,7 +75,7 @@ public class ErrorHandler {
 
     @ExceptionHandler(ValidationException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ApiError handleValidationException(ValidationException e) {
+    public ApiError handleValidationException(final ValidationException e) {
         log.error("Validation error: {}", e.getMessage(), e);
         return new ApiError(
                 HttpStatus.BAD_REQUEST,
@@ -120,7 +120,7 @@ public class ErrorHandler {
 
     @ExceptionHandler(DuplicateEmailException.class)
     @ResponseStatus(HttpStatus.CONFLICT)
-    public ApiError handleDuplicateEmailException(DuplicateEmailException e) {
+    public ApiError handleDuplicateEmailException(final DuplicateEmailException e) {
         log.error("Duplicate email: {}", e.getMessage(), e);
         return new ApiError(
                 HttpStatus.CONFLICT,
@@ -132,7 +132,7 @@ public class ErrorHandler {
 
     @ExceptionHandler(InitiatorParticipationException.class)
     @ResponseStatus(HttpStatus.CONFLICT)
-    public ApiError handleInitiatorParticipationException(InitiatorParticipationException e) {
+    public ApiError handleInitiatorParticipationException(final InitiatorParticipationException e) {
         log.error("Initiator participation: {}", e.getMessage(), e);
         return new ApiError(
                 HttpStatus.CONFLICT,
@@ -144,7 +144,7 @@ public class ErrorHandler {
 
     @ExceptionHandler(DuplicateRequestException.class)
     @ResponseStatus(HttpStatus.CONFLICT)
-    public ApiError handleDuplicateRequestException(DuplicateRequestException e) {
+    public ApiError handleDuplicateRequestException(final DuplicateRequestException e) {
         log.error("Duplicate request: {}", e.getMessage(), e);
         return new ApiError(
                 HttpStatus.CONFLICT,
@@ -156,7 +156,7 @@ public class ErrorHandler {
 
     @ExceptionHandler(EventNotPublishedException.class)
     @ResponseStatus(HttpStatus.CONFLICT)
-    public ApiError handleEventNotPublishedException(EventNotPublishedException e) {
+    public ApiError handleEventNotPublishedException(final EventNotPublishedException e) {
         log.error("Event not published: {}", e.getMessage(), e);
         return new ApiError(
                 HttpStatus.CONFLICT,
@@ -168,7 +168,7 @@ public class ErrorHandler {
 
     @ExceptionHandler(ParticipantLimitReachedException.class)
     @ResponseStatus(HttpStatus.CONFLICT)
-    public ApiError handleParticipantLimitReachedException(ParticipantLimitReachedException e) {
+    public ApiError handleParticipantLimitReachedException(final ParticipantLimitReachedException e) {
         log.error("Participant limit: {}", e.getMessage(), e);
         return new ApiError(
                 HttpStatus.CONFLICT,
