@@ -22,20 +22,9 @@ import java.util.List;
         imports = {LocalDateTime.class, EventState.class})
 public interface EventMapper {
 
-    @Mapping(target = "initiator", ignore = true)
-    @Mapping(target = "confirmedRequests", source = "event.confirmedRequests")
-    @Mapping(target = "views", source = "event.views", ignore = true)
-    EventFullDto toEventFullDto(Event event);
-
-    @Mapping(target = "confirmedRequests", source = "event.confirmedRequests")
-    @Mapping(target = "views", source = "event.views", ignore = true)
-    @Mapping(target = "initiator", source = "userShortDto")
-    @Mapping(target = "id", source = "event.id")
-    EventFullDto toEventFullDto(Event event, UserShortDto userShortDto);
-
     @Mapping(target = "id", ignore = true)
-    @Mapping(target = "confirmedRequests", ignore = true)
-    @Mapping(target = "views", ignore = true)
+    @Mapping(target = "confirmedRequests", expression = "java(0L)")
+    @Mapping(target = "views", expression = "java(0L)")
     @Mapping(target = "createdOn", expression = "java(LocalDateTime.now())")
     @Mapping(target = "publishedOn", ignore = true)
     @Mapping(target = "state", expression = "java(EventState.PENDING)")
@@ -44,10 +33,28 @@ public interface EventMapper {
     @Mapping(target = "location", source = "newEventDto.location")
     Event toEvent(NewEventDto newEventDto, Category category, Long initiatorId);
 
-    @Mapping(target = "confirmedRequests", source = "event.confirmedRequests")
-    @Mapping(target = "views", source = "event.views")
-    @Mapping(target = "initiator", source = "initiator")
     @Mapping(target = "id", source = "event.id")
+    @Mapping(target = "confirmedRequests", source = "event.confirmedRequests",
+            defaultExpression = "java(0L)")
+    @Mapping(target = "views", source = "event.views",
+            defaultExpression = "java(0L)")
+    @Mapping(target = "initiator", ignore = true)
+    EventFullDto toEventFullDto(Event event);
+
+    @Mapping(target = "id", source = "event.id")
+    @Mapping(target = "confirmedRequests", source = "event.confirmedRequests",
+            defaultExpression = "java(0L)")
+    @Mapping(target = "views", source = "event.views",
+            defaultExpression = "java(0L)")
+    @Mapping(target = "initiator", source = "userShortDto")
+    EventFullDto toEventFullDto(Event event, UserShortDto userShortDto);
+
+    @Mapping(target = "id", source = "event.id")
+    @Mapping(target = "confirmedRequests", source = "event.confirmedRequests",
+            defaultExpression = "java(0L)")
+    @Mapping(target = "views", source = "event.views",
+            defaultExpression = "java(0L)")
+    @Mapping(target = "initiator", source = "initiator")
     EventShortDto toEventShortDto(Event event, UserShortDto initiator);
 
     List<EventFullDto> toEventFullDto(List<Event> events);
