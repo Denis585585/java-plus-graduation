@@ -17,4 +17,5 @@ public class ApiError {
     private final String stackTrace;
     @JsonFormat(pattern = DateTimeUtil.DATE_TIME_FORMAT)
     private final LocalDateTime timestamp = LocalDateTime.now();
+
 }
