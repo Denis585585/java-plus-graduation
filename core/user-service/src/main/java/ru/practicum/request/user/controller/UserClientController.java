@@ -4,8 +4,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import ru.practicum.request.client.UserClient;
-import ru.practicum.request.dto.user.UserShortDto;
+import ru.practicum.client.UserClient;
+import ru.practicum.dto.user.UserShortDto;
 import ru.practicum.request.user.service.UserService;
 
 import java.util.List;

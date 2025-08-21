@@ -4,9 +4,10 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingConstants;
 
-import ru.practicum.request.dto.user.UserDto;
-import ru.practicum.request.dto.user.UserRequestDto;
-import ru.practicum.request.dto.user.UserShortDto;
+
+import ru.practicum.dto.user.UserDto;
+import ru.practicum.dto.user.UserRequestDto;
+import ru.practicum.dto.user.UserShortDto;
 import ru.practicum.request.user.model.User;
 
 @Mapper(componentModel = MappingConstants.ComponentModel.SPRING)

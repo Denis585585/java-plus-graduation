@@ -1,4 +1,4 @@
-package ru.practicum.request.explore.hit;
+package ru.practicum.explore.hit;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

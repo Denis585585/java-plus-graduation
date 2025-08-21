@@ -15,7 +15,6 @@ import ru.practicum.categories.repository.CategoryRepository;
 import ru.practicum.categories.model.Category;
 import ru.practicum.client.RequestClient;
 import ru.practicum.client.UserClient;
-import ru.practicum.dto.ViewStatsDto;
 import ru.practicum.dto.events.*;
 import ru.practicum.dto.request.ParticipationRequestDto;
 import ru.practicum.dto.request.RequestStatus;
@@ -33,6 +32,7 @@ import ru.practicum.dto.events.StateActionForUser;
 import ru.practicum.exceptions.ConflictDataException;
 import ru.practicum.exceptions.EventDateValidationException;
 import ru.practicum.exceptions.NotFoundException;
+import ru.practicum.dto.ViewStatsDto;
 import stat.StatClient;
 
 import java.time.LocalDateTime;

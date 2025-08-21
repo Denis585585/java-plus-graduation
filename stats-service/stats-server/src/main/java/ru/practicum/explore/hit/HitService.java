@@ -1,8 +1,8 @@
-package ru.practicum.request.explore.hit;
+package ru.practicum.explore.hit;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import ru.practicum.request.dto.EndpointHitDto;
+import ru.practicum.dto.EndpointHitDto;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;

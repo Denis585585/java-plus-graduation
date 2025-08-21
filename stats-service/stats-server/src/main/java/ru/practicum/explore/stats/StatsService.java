@@ -1,10 +1,10 @@
-package ru.practicum.request.explore.stats;
+package ru.practicum.explore.stats;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import ru.practicum.request.dto.ViewStatsDto;
-import ru.practicum.request.explore.exception.EventDateValidationException;
+import ru.practicum.dto.ViewStatsDto;
+import ru.practicum.explore.exception.EventDateValidationException;
 
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
