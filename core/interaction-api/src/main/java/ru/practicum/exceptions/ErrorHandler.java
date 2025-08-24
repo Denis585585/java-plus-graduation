@@ -28,9 +28,7 @@ public class ErrorHandler {
                 getStackTrace(e));
     }
 
-    @ExceptionHandler({ConflictDataException.class, DataIntegrityViolationException.class,
-            DuplicateEmailException.class, DuplicateRequestException.class, EventNotPublishedException.class,
-            InitiatorParticipationException.class, ParticipantLimitReachedException.class})
+    @ExceptionHandler({ConflictDataException.class, DataIntegrityViolationException.class})
     @ResponseStatus(HttpStatus.CONFLICT)
     public ApiError handleDataIntegrityViolationException(final Exception e) {
         log.error("{} {}", HttpStatus.CONFLICT, e.getMessage(), e);
@@ -43,7 +41,7 @@ public class ErrorHandler {
 
     @ExceptionHandler({MissingServletRequestParameterException.class, MethodArgumentNotValidException.class,
             InvalidDataException.class, HttpMessageNotReadableException.class, HandlerMethodValidationException.class,
-            EventDateValidationException.class})
+    EventDateValidationException.class})
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ApiError handleMethodArgumentNotValidException(final Exception e) {
         log.error("{} {}", HttpStatus.BAD_REQUEST, e.getMessage(), e);
