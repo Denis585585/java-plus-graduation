@@ -9,10 +9,14 @@ import ru.practicum.client.UserClient;
 import ru.practicum.dto.events.EventFullDto;
 import ru.practicum.dto.events.EventState;
 import ru.practicum.dto.request.*;
+import ru.practicum.events.model.Event;
+import ru.practicum.events.repository.EventRepository;
 import ru.practicum.exceptions.*;
 import ru.practicum.request.mapper.RequestMapper;
 import ru.practicum.request.model.Request;
 import ru.practicum.request.repository.RequestRepository;
+import ru.practicum.user.model.User;
+import ru.practicum.user.repository.UserRepository;
 
 import java.security.InvalidParameterException;
 import java.time.LocalDateTime;
@@ -28,6 +32,8 @@ public class RequestServiceImpl implements RequestService {
     private final RequestMapper requestMapper;
     private final UserClient userClient;
     private final EventClient eventClient;
+    private final UserRepository userRepository;
+    private final EventRepository eventRepository;
 
     @Override
     @Transactional(readOnly = true)
@@ -40,9 +46,10 @@ public class RequestServiceImpl implements RequestService {
     @Override
     @Transactional
     public ParticipationRequestDto createRequest(Long userId, Long eventId) {
-        EventFullDto event = eventClient.getById(eventId);
-        userClient.getById(userId);
-
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundException("User с id " + userId + " не существует"));
+        Event event = eventRepository.findById(eventId)
+                .orElseThrow(() -> new NotFoundException("Event с id " + eventId + " не существует"));
         checkRequest(userId, eventId, event);
 
         Request request = Request.builder()
@@ -144,11 +151,11 @@ public class RequestServiceImpl implements RequestService {
         return result;
     }
 
-    private void checkRequest(Long requesterId, Long eventId, EventFullDto event) {
+    private void checkRequest(Long requesterId, Long eventId, Event event) {
         if (requestRepository.existsByRequesterIdAndEventId(requesterId, eventId))
             throw new DuplicateRequestException("Нельзя создать повторный запрос");
 
-        if (event.getInitiator().getId().equals(requesterId))
+        if (event.getInitiatorId().equals(requesterId))
             throw new InitiatorParticipationException("Инициатор события не может добавить запрос на участие в своём событии");
 
         if (event.getState() != EventState.PUBLISHED)

@@ -13,7 +13,6 @@ import org.springframework.web.method.annotation.HandlerMethodValidationExceptio
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.security.InvalidParameterException;
 
 @RestControllerAdvice
 @Slf4j
@@ -29,65 +28,11 @@ public class ErrorHandler {
                 getStackTrace(e));
     }
 
-    @ExceptionHandler(MethodArgumentNotValidException.class)
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ApiError handleMethodArgumentNotValid(final MethodArgumentNotValidException e) {
-        log.error("{} {}", HttpStatus.BAD_REQUEST, e.getMessage(), e);
-        return new ApiError(
-                HttpStatus.BAD_REQUEST,
-                "Incorrectly made request.",
-                e.getMessage(),
-                getStackTrace(e));
-    }
-
-    @ExceptionHandler(InvalidDataException.class)
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ApiError handleInvalidDataException(final InvalidDataException e) {
-        log.error("{} {}", HttpStatus.BAD_REQUEST, e.getMessage(), e);
-        return new ApiError(
-                HttpStatus.BAD_REQUEST,
-                "Incorrectly made request.",
-                e.getMessage(),
-                getStackTrace(e));
-    }
-
-    @ExceptionHandler(EventDateValidationException.class)
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ApiError handleEventDateValidationException(final EventDateValidationException e) {
-        log.error("{} {}", HttpStatus.BAD_REQUEST, e.getMessage(), e);
-        return new ApiError(
-                HttpStatus.BAD_REQUEST,
-                "Incorrectly made request.",
-                e.getMessage(),
-                getStackTrace(e));
-    }
-
-    @ExceptionHandler(MissingServletRequestParameterException.class)
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ApiError handleMissingServletRequestParameterException(final MissingServletRequestParameterException e) {
-        log.error("{} {}", HttpStatus.BAD_REQUEST, e.getMessage(), e);
-        return new ApiError(
-                HttpStatus.BAD_REQUEST,
-                "Incorrectly made request.",
-                e.getMessage(),
-                getStackTrace(e));
-    }
-
-    @ExceptionHandler(ValidationException.class)
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ApiError handleValidationException(final ValidationException e) {
-        log.error("Validation error: {}", e.getMessage(), e);
-        return new ApiError(
-                HttpStatus.BAD_REQUEST,
-                "Incorrectly made request",
-                e.getMessage(),
-                getStackTrace(e)
-        );
-    }
-
-    @ExceptionHandler(DataIntegrityViolationException.class)
+    @ExceptionHandler({ConflictDataException.class, DataIntegrityViolationException.class,
+            DuplicateEmailException.class, DuplicateRequestException.class, EventNotPublishedException.class,
+            InitiatorParticipationException.class, ParticipantLimitReachedException.class})
     @ResponseStatus(HttpStatus.CONFLICT)
-    public ApiError handleDataIntegrityViolationException(final DataIntegrityViolationException e) {
+    public ApiError handleDataIntegrityViolationException(final Exception e) {
         log.error("{} {}", HttpStatus.CONFLICT, e.getMessage(), e);
         return new ApiError(
                 HttpStatus.CONFLICT,
@@ -96,102 +41,11 @@ public class ErrorHandler {
                 getStackTrace(e));
     }
 
-    @ExceptionHandler(IllegalStateException.class)
-    @ResponseStatus(HttpStatus.CONFLICT)
-    public ApiError handleIllegalStateException(final IllegalStateException e) {
-        log.error("{} {}", HttpStatus.CONFLICT, e.getMessage(), e);
-        return new ApiError(
-                HttpStatus.CONFLICT,
-                "Integrity constraint has been violated.",
-                e.getMessage(),
-                getStackTrace(e));
-    }
-
-    @ExceptionHandler(ConflictDataException.class)
-    @ResponseStatus(HttpStatus.CONFLICT)
-    public ApiError handleConflictDataException(final ConflictDataException e) {
-        log.error("{} {}", HttpStatus.CONFLICT, e.getMessage(), e);
-        return new ApiError(
-                HttpStatus.CONFLICT,
-                "Integrity constraint has been violated.",
-                e.getMessage(),
-                getStackTrace(e));
-    }
-
-    @ExceptionHandler(DuplicateEmailException.class)
-    @ResponseStatus(HttpStatus.CONFLICT)
-    public ApiError handleDuplicateEmailException(final DuplicateEmailException e) {
-        log.error("Duplicate email: {}", e.getMessage(), e);
-        return new ApiError(
-                HttpStatus.CONFLICT,
-                "Duplicate email",
-                e.getMessage(),
-                getStackTrace(e)
-        );
-    }
-
-    @ExceptionHandler(InitiatorParticipationException.class)
-    @ResponseStatus(HttpStatus.CONFLICT)
-    public ApiError handleInitiatorParticipationException(final InitiatorParticipationException e) {
-        log.error("Initiator participation: {}", e.getMessage(), e);
-        return new ApiError(
-                HttpStatus.CONFLICT,
-                "Initiator cannot participate",
-                e.getMessage(),
-                getStackTrace(e)
-        );
-    }
-
-    @ExceptionHandler(DuplicateRequestException.class)
-    @ResponseStatus(HttpStatus.CONFLICT)
-    public ApiError handleDuplicateRequestException(final DuplicateRequestException e) {
-        log.error("Duplicate request: {}", e.getMessage(), e);
-        return new ApiError(
-                HttpStatus.CONFLICT,
-                "Duplicate participation request",
-                e.getMessage(),
-                getStackTrace(e)
-        );
-    }
-
-    @ExceptionHandler(EventNotPublishedException.class)
-    @ResponseStatus(HttpStatus.CONFLICT)
-    public ApiError handleEventNotPublishedException(final EventNotPublishedException e) {
-        log.error("Event not published: {}", e.getMessage(), e);
-        return new ApiError(
-                HttpStatus.CONFLICT,
-                "Event not published",
-                e.getMessage(),
-                getStackTrace(e)
-        );
-    }
-
-    @ExceptionHandler(ParticipantLimitReachedException.class)
-    @ResponseStatus(HttpStatus.CONFLICT)
-    public ApiError handleParticipantLimitReachedException(final ParticipantLimitReachedException e) {
-        log.error("Participant limit: {}", e.getMessage(), e);
-        return new ApiError(
-                HttpStatus.CONFLICT,
-                "Participant limit reached",
-                e.getMessage(),
-                getStackTrace(e)
-        );
-    }
-
-    @ExceptionHandler(InvalidParameterException.class)
-    @ResponseStatus(HttpStatus.CONFLICT)
-    public ApiError handleInvalidParameterException(final InvalidParameterException e) {
-        log.error("{} {}", HttpStatus.CONFLICT, e.getMessage(), e);
-        return new ApiError(
-                HttpStatus.CONFLICT,
-                "Integrity constraint has been violated.",
-                e.getMessage(),
-                getStackTrace(e));
-    }
-
-    @ExceptionHandler(HttpMessageNotReadableException.class)
+    @ExceptionHandler({MissingServletRequestParameterException.class, MethodArgumentNotValidException.class,
+            InvalidDataException.class, HttpMessageNotReadableException.class, HandlerMethodValidationException.class,
+            EventDateValidationException.class})
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ApiError handleHttpMessageNotReadableException(final HttpMessageNotReadableException e) {
+    public ApiError handleMethodArgumentNotValidException(final Exception e) {
         log.error("{} {}", HttpStatus.BAD_REQUEST, e.getMessage(), e);
         return new ApiError(
                 HttpStatus.BAD_REQUEST,
@@ -200,13 +54,13 @@ public class ErrorHandler {
                 getStackTrace(e));
     }
 
-    @ExceptionHandler(HandlerMethodValidationException.class)
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ApiError handleHandlerMethodValidationException(final HandlerMethodValidationException e) {
-        log.error("{} {}", HttpStatus.BAD_REQUEST, e.getMessage(), e);
+    @ExceptionHandler
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    public ApiError handleInternalServerException(final InternalServerException e) {
+        log.error("{} {}", HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage(), e);
         return new ApiError(
-                HttpStatus.BAD_REQUEST,
-                "Incorrectly made request.",
+                HttpStatus.INTERNAL_SERVER_ERROR,
+                "Internal server error.",
                 e.getMessage(),
                 getStackTrace(e));
     }
