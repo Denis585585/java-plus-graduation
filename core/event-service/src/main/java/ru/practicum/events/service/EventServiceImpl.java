@@ -452,7 +452,7 @@ public class EventServiceImpl implements EventService {
                     RequestStatus.REJECTED, idsToChangeStatus);
             return new EventRequestStatusUpdateResultDto(null, requestUpdated);
         }
-        return null;
+        return new EventRequestStatusUpdateResultDto(null, null);
     }
 
     @Override
