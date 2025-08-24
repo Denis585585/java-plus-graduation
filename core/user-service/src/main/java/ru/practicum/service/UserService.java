@@ -19,11 +19,11 @@ public interface UserService {
 
     List<UserDto> getUsers(UserParams userParams);
 
-    public List<UserShortDto> getUsers(List<Long> ids);
+    List<UserShortDto> getUsers(List<Long> ids);
 
-    public List<UserDto> getUsers(List<Long> ids, Integer from, Integer size);
+    List<UserDto> getUsers(List<Long> ids, Integer from, Integer size);
 
-    public UserShortDto getById(Long userId);
+    UserShortDto getById(Long userId);
 
-    public UserDto registerUser(UserRequestDto userRequestDto);
+    UserDto registerUser(UserRequestDto userRequestDto);
 }

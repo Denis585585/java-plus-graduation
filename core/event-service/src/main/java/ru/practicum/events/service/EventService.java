@@ -1,5 +1,6 @@
 package ru.practicum.events.service;
 
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.dto.events.*;
 import ru.practicum.dto.request.ParticipationRequestDto;
@@ -55,4 +56,6 @@ public interface EventService {
             Long userId,
             Long eventId,
             EventRequestStatusUpdateRequestDto requestStatusUpdateRequest);
+
+    void saveHit(HttpServletRequest request);
 }

@@ -42,33 +42,19 @@ public class EventPublicController {
                                                                HttpServletRequest request) {
         EventPublicParam eventPublicParam = new EventPublicParam(text, categories, paid,
                 rangeStart, rangeEnd, onlyAvailable, sort, from, size);
-        saveHit(request);
+        eventService.saveHit(request);
         return ResponseEntity.ok().body(eventService.publicGetEvents(eventPublicParam));
     }
 
     @GetMapping("/{eventId}")
     public ResponseEntity<EventFullDto> publicGetEvent(@PathVariable Long eventId, HttpServletRequest request) {
-        saveHit(request);
+        eventService.saveHit(request);
         return ResponseEntity.ok().body(eventService.publicGetEvent(eventId));
     }
 
     @GetMapping("/{eventId}/likes")
     public ResponseEntity<List<UserShortDto>> publicGetLikedUsers(@PathVariable("eventId") Long eventId, HttpServletRequest request) {
-        saveHit(request);
+        eventService.saveHit(request);
         return ResponseEntity.ok(eventService.getLikedUsers(eventId));
-    }
-
-    private void saveHit(HttpServletRequest request) {
-        EndpointHitDto hitDto = new EndpointHitDto();
-        hitDto.setApp("main-service");
-        hitDto.setUri(request.getRequestURI());
-        hitDto.setIp(request.getRemoteAddr());
-        hitDto.setTimestamp(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
-        ResponseEntity<Object> response = statClient.saveHit(hitDto);
-        if (response.getStatusCode() == HttpStatus.OK || response.getStatusCode() == HttpStatus.CREATED) {
-            System.out.println("Hit saved successfully for URI: " + request.getRequestURI());
-        } else {
-            System.err.println("Failed to save hit: " + response.getStatusCode());
-        }
     }
 }

@@ -8,6 +8,6 @@ import lombok.Setter;
 @Setter
 @AllArgsConstructor
 public class RequestCount {
-    Long eventId;
-    Long quantity;
+    private Long eventId;
+    private Long quantity;
 }

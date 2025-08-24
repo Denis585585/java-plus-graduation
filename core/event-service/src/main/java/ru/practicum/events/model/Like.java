@@ -15,12 +15,12 @@ import lombok.experimental.FieldDefaults;
 public class Like {
 
     @EmbeddedId
-    LikeId id;
+    private LikeId id;
 
     @ManyToOne
     @MapsId("eventId")
     @JoinColumn(name = "event_id", nullable = false)
-    Event event;
+    private Event event;
 
     public Long getUserId() {
         return id != null ? id.getUserId() : null;
