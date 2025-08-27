@@ -25,7 +25,6 @@ public class EventFullDto {
     private UserShortDto initiator;
     private Boolean paid;
     private String title;
-    private Long views;
     private LocalDateTime createdOn;
     private String description;
     private LocationDto location;
@@ -33,4 +32,5 @@ public class EventFullDto {
     private LocalDateTime publishedOn;
     private Boolean requestModeration;
     private EventState state;
+    private double rating;
 }

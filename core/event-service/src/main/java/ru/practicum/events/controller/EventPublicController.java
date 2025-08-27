@@ -3,20 +3,16 @@ package ru.practicum.events.controller;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import ru.practicum.dto.EndpointHitDto;
 import ru.practicum.dto.events.EventFullDto;
 import ru.practicum.dto.events.EventPublicParam;
 import ru.practicum.dto.events.EventShortDto;
 import ru.practicum.dto.user.UserShortDto;
 import ru.practicum.events.service.EventService;
 import ru.practicum.dto.events.SortState;
-import stat.StatClient;
 
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 @RestController
@@ -25,7 +21,6 @@ import java.util.List;
 public class EventPublicController {
 
     private final EventService eventService;
-    private final StatClient statClient;
 
     @GetMapping
     public ResponseEntity<List<EventShortDto>> publicGetEvents(@RequestParam(required = false) String text,
@@ -47,9 +42,11 @@ public class EventPublicController {
     }
 
     @GetMapping("/{eventId}")
-    public ResponseEntity<EventFullDto> publicGetEvent(@PathVariable Long eventId, HttpServletRequest request) {
+    public ResponseEntity<EventFullDto> publicGetEvent(@PathVariable("eventId") Long eventId,
+                                                       @RequestHeader("X-EWM-USER-ID") Long userId,
+                                                       HttpServletRequest request) {
         eventService.saveHit(request);
-        return ResponseEntity.ok().body(eventService.publicGetEvent(eventId));
+        return ResponseEntity.ok().body(eventService.publicGetEvent(eventId, userId));
     }
 
     @GetMapping("/{eventId}/likes")

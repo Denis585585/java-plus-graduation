@@ -1,7 +1,6 @@
 package ru.practicum.events.service;
 
 import jakarta.servlet.http.HttpServletRequest;
-import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.dto.events.*;
 import ru.practicum.dto.request.ParticipationRequestDto;
 import ru.practicum.dto.user.UserShortDto;
@@ -13,27 +12,22 @@ public interface EventService {
 
     List<EventShortDto> getEventsByUser(Long userId, Integer from, Integer size);
 
-    @Transactional
     EventFullDto createEvent(Long userId, NewEventDto newEventDto);
 
     EventFullDto getFullEventInformation(Long userId, Long eventId);
 
-    @Transactional
     EventFullDto updateEventByUser(Long userId, Long eventId, UpdateEventUserDto updateEventUserDto);
 
-    @Transactional
     EventFullDto updateAdminEvent(Long eventId, UpdateEventAdminRequestDto updateEventAdminRequest);
 
     List<EventFullDto> adminGetEvents(EventAdminParams eventParams);
 
     List<EventShortDto> publicGetEvents(EventPublicParam eventPublicParam);
 
-    EventFullDto publicGetEvent(Long eventId);
+    EventFullDto publicGetEvent(Long eventId, Long userId);
 
-    @Transactional
-    Long addLike(Long userId, Long eventId);
+    void addLike(Long userId, Long eventId);
 
-    @Transactional
     Long removeLike(Long userId, Long eventId);
 
     List<UserShortDto> getLikedUsers(Long eventId);
@@ -58,4 +52,6 @@ public interface EventService {
             EventRequestStatusUpdateRequestDto requestStatusUpdateRequest);
 
     void saveHit(HttpServletRequest request);
+
+    List<EventShortDto> getRecommendations(Long userId, Integer from, Integer size);
 }
