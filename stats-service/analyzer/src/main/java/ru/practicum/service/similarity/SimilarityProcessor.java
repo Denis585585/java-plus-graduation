@@ -54,7 +54,7 @@ public class SimilarityProcessor implements Runnable {
                 });
             }
         } catch (WakeupException ignored) {
-            // Остановка потребителя
+            log.error("Остановка потребителя");
         } catch (Exception error) {
             log.error("Error when processing user actions", error);
         } finally {

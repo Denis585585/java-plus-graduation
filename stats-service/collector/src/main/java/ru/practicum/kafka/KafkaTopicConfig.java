@@ -12,5 +12,5 @@ import java.util.EnumMap;
 @Component
 @ConfigurationProperties("collector.kafka")
 public class KafkaTopicConfig {
-    EnumMap<KafkaTopic, String> topics = new EnumMap<>(KafkaTopic.class);
+    private EnumMap<KafkaTopic, String> topics = new EnumMap<>(KafkaTopic.class);
 }

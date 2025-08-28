@@ -11,5 +11,5 @@ import lombok.experimental.SuperBuilder;
 @NoArgsConstructor
 public class RecommendedEventDto {
     private Long eventId;
-    private double score;
+    private Double score;
 }
