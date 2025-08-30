@@ -1,7 +1,6 @@
 package ru.practicum.events.service;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import io.grpc.StatusRuntimeException;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -9,8 +8,6 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.categories.model.Category;
@@ -18,7 +15,6 @@ import ru.practicum.categories.repository.CategoryRepository;
 import ru.practicum.client.RequestClient;
 import ru.practicum.client.UserClient;
 import ru.practicum.dto.EndpointHitDto;
-import ru.practicum.dto.ViewStatsDto;
 import ru.practicum.dto.events.*;
 import ru.practicum.dto.request.ParticipationRequestDto;
 import ru.practicum.dto.request.RequestStatus;
@@ -33,13 +29,15 @@ import ru.practicum.events.repository.LocationRepository;
 import ru.practicum.exceptions.ConflictDataException;
 import ru.practicum.exceptions.EventDateValidationException;
 import ru.practicum.exceptions.NotFoundException;
-import stat.StatClient;
+import ru.practicum.grpc.stats.action.ActionTypeProto;
+import ru.practicum.grpc.stats.recommendation.RecommendedEventProto;
+import ru.practicum.stat.AnalyzerClient;
+import ru.practicum.stat.StatClientImpl;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -51,9 +49,10 @@ public class EventServiceImpl implements EventService {
     private final LocationMapper locationMapper;
     private final CategoryRepository categoryRepository;
     private final EventMapper eventMapper;
-    private final StatClient statClient;
+    private final StatClientImpl statClientImpl;
     private final UserClient userClient;
     private final RequestClient requestClient;
+    private final AnalyzerClient analyzerClient;
 
     private static final String START = "2025-01-01 00:00:00";
     private static final String END = "2025-12-31 23:59:59";
@@ -83,9 +82,12 @@ public class EventServiceImpl implements EventService {
                     dto.setInitiator(userClient.getById(event.getInitiatorId()));
                     return dto;
                 })
+                .sorted(Comparator.comparing(EventFullDto::getRating).reversed())
                 .toList();
     }
 
+    @Override
+    @Transactional
     public EventFullDto updateAdminEvent(Long eventId, UpdateEventAdminRequestDto updateEventAdminRequest) {
         Event event = eventRepository.findById(eventId)
                 .orElseThrow(() -> new NotFoundException(String.format("Event with id=%d was not found", eventId)));
@@ -152,6 +154,7 @@ public class EventServiceImpl implements EventService {
     }
 
     @Override
+    @Transactional
     public EventFullDto createEvent(Long userId, NewEventDto newEventDto) {
         log.info("Создание события пользователем с ID={}", userId);
         if (newEventDto.getEventDate() != null &&
@@ -184,6 +187,7 @@ public class EventServiceImpl implements EventService {
     }
 
     @Override
+    @Transactional
     public EventFullDto updateEventByUser(Long userId, Long eventId, UpdateEventUserDto updateEventUserDto) {
         log.info("Обновление события с ID={} пользователем с ID={}", eventId, userId);
         Event event = eventRepository.findByIdAndInitiatorId(eventId, userId)
@@ -259,44 +263,30 @@ public class EventServiceImpl implements EventService {
                         .map(event -> eventMapper.toEventShortDto(event, getUserById(event.getInitiatorId())))
                         .toList();
                 case VIEWS -> events.stream()
-                        .sorted(Comparator.comparing(Event::getViews))
+                        .sorted(Comparator.comparing(Event::getRating))
                         .map(event -> eventMapper.toEventShortDto(event, getUserById(event.getInitiatorId())))
                         .toList();
             };
         }
-        log.info("Вызов метода по добавлению просмотров");
-        for (Event event : events) {
-            addViews("/events/" + event.getId(), event);
-        }
+
         return events.stream()
                 .map(event -> eventMapper.toEventShortDto(event, getUserById(event.getInitiatorId())))
                 .toList();
     }
 
     @Override
-    public EventFullDto publicGetEvent(Long eventId) {
+    public EventFullDto publicGetEvent(Long eventId, Long userId) {
         Event event = eventRepository.findById(eventId)
                 .orElseThrow(() -> new ConflictDataException(String.format("Event with ID=%d was not found", eventId)));
         if (event.getState() != EventState.PUBLISHED) {
             throw new NotFoundException(String.format("Event with ID=%d was not published", eventId));
         }
-        log.info("Вызов метода по добавлению просмотров");
-        addViews("/events/" + event.getId(), event);
+        statClientImpl.registerUserAction(event.getId(), userId, ActionTypeProto.ACTION_VIEW, Instant.now());
         return eventMapper.toEventFullDto(event);
     }
 
     @Override
-    public Long addLike(Long userId, Long eventId) {
-        Event event = getEvent(eventId);
-
-        if (!likeRepository.existsByIdUserIdAndIdEventId(userId, eventId)) {
-            Like like = new Like(userId, event);
-            likeRepository.save(like);
-        }
-        return likeRepository.countByEventId(eventId);
-    }
-
-    @Override
+    @Transactional
     public Long removeLike(Long userId, Long eventId) {
         if (likeRepository.existsByIdUserIdAndIdEventId(userId, eventId)) {
             likeRepository.deleteByIdUserIdAndIdEventId(userId, eventId);
@@ -338,15 +328,6 @@ public class EventServiceImpl implements EventService {
                 .map(Like::getEvent)
                 .map(Event::getId)
                 .toList();
-    }
-
-    private void addViews(String uri, Event event) {
-        ResponseEntity<Object> response = statClient.getStats(START, END, List.of(uri), false);
-        ObjectMapper mapper = new ObjectMapper();
-        List<ViewStatsDto> views = mapper.convertValue(response.getBody(), new TypeReference<List<ViewStatsDto>>() {
-        });
-        event.setViews(views.isEmpty() ? 0L : (long) views.size());
-        log.info("Views was updated, views= {}", event.getViews());
     }
 
     private Category getCategory(Long categoryId) {
@@ -452,8 +433,79 @@ public class EventServiceImpl implements EventService {
                     RequestStatus.REJECTED, idsToChangeStatus);
             return new EventRequestStatusUpdateResultDto(null, requestUpdated);
         }
-        return new EventRequestStatusUpdateResultDto(null, null);
+        return null;
     }
+
+    @Override
+    public List<EventShortDto> getRecommendations(Long userId, Integer from, Integer size) {
+        List<RecommendedEventProto> recommendedEvents;
+        try {
+            recommendedEvents = analyzerClient.getRecommendations(userId, size)
+                    .skip(from)
+                    .limit(size)
+                    .toList();
+        } catch (StatusRuntimeException e) {
+            log.error("Failed to fetch recommendations for userId={}: {}", userId, e.getStatus(), e);
+            return List.of();
+        }
+        if (recommendedEvents.isEmpty()) {
+            log.info("No recommendations available for userId={}", userId);
+            return List.of();
+        }
+
+        List<Long> eventIds = recommendedEvents.stream()
+                .map(RecommendedEventProto::getEventId)
+                .toList();
+
+        List<Event> events = eventRepository.findAllById(eventIds).stream()
+                .filter(event -> event.getState() == EventState.PUBLISHED)
+                .toList();
+
+        if (events.isEmpty()) {
+            log.info("No published events found for recommended event IDs: {}", eventIds);
+            return List.of();
+        }
+
+        List<Long> userIds = events.stream().map(Event::getInitiatorId).toList();
+        List<UserShortDto> usersDto = userClient.getByIds(userIds).stream()
+                .map(userDto -> UserShortDto.builder().id(userDto.getId()).name(userDto.getName()).build())
+                .toList();
+
+        Map<Long, Double> ratings;
+        try {
+            ratings = analyzerClient.getInteractionsCount(eventIds);
+        } catch (StatusRuntimeException e) {
+            log.error("Failed to retrieve ratings for event IDs {}: {}", eventIds, e.getStatus(), e);
+            ratings = Map.of();
+        }
+
+        Map<Long, Double> finalRatings = ratings;
+        return events.stream().map(event -> {
+            UserShortDto initiator = usersDto.stream()
+                    .filter(user -> user.getId().equals(event.getInitiatorId()))
+                    .findAny()
+                    .orElseThrow(() -> new NotFoundException("User with id=" + event.getInitiatorId() + " not found"));
+            double rating = finalRatings.getOrDefault(event.getId(), 0.0);
+            event.setRating(rating);
+            return eventMapper.toEventShortDto(event, initiator);
+        }).toList();
+    }
+
+    @Override
+    @Transactional
+    public void addLike(Long userId, Long eventId) {
+        Event event = getEvent(eventId);
+        List<ParticipationRequestDto> participants = requestClient.getByStatus(
+                eventId, RequestStatus.CONFIRMED);
+
+        if (event.getEventDate().isAfter(LocalDateTime.now()) &&
+                participants.stream().noneMatch(participant -> Objects.equals(participant.getRequester(), userId))) {
+            throw new ConflictDataException("Можно лайкать только посещённые мероприятия");
+        }
+
+        statClientImpl.registerUserAction(eventId, userId, ActionTypeProto.ACTION_LIKE, Instant.now());
+    }
+
 
     @Override
     public void saveHit(HttpServletRequest request) {
@@ -462,11 +514,5 @@ public class EventServiceImpl implements EventService {
         hitDto.setUri(request.getRequestURI());
         hitDto.setIp(request.getRemoteAddr());
         hitDto.setTimestamp(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
-        ResponseEntity<Object> response = statClient.saveHit(hitDto);
-        if (response.getStatusCode() == HttpStatus.OK || response.getStatusCode() == HttpStatus.CREATED) {
-            System.out.println("Hit saved successfully for URI: " + request.getRequestURI());
-        } else {
-            System.err.println("Failed to save hit: " + response.getStatusCode());
-        }
     }
 }
